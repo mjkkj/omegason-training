@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wireframe · App Training Omegason</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  * { -webkit-font-smoothing: antialiased; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="wf-kit.jsx"></script>
+<script type="text/babel" src="wf-employee.jsx"></script>
+<script type="text/babel" src="wf-manager.jsx"></script>
+
+<script type="text/babel">
+const { DesignCanvas, DCSection, DCArtboard,
+  EmpRoadmapA, EmpRoadmapB, EmpTaskA, EmpTaskB, EmpSubmitA, EmpSubmitB,
+  EmpProgressA, EmpProgressB, EmpScheduleA, EmpScheduleB,
+  MgrMatrixA, MgrMatrixB, MgrStatsA, MgrStatsB,
+  MgrProfileA, MgrProfileB, MgrQueueA, MgrQueueB } = window;
+const SW = 1180, SH = 760;
+
+function App() {
+  return (
+    <DesignCanvas>
+      {/* ── EMPLOYEE ── */}
+      <DCSection id="emp-roadmap" title="NV · Lộ trình 4 tuần" subtitle="Roadmap 10 task + final — 2 hướng bố cục">
+        <DCArtboard id="a" label="A · Timeline ngang theo tuần" width={SW} height={SH}><EmpRoadmapA /></DCArtboard>
+        <DCArtboard id="b" label="B · Danh sách spine + tóm tắt" width={SW} height={SH}><EmpRoadmapB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="emp-task" title="NV · Chi tiết task" subtitle="Yêu cầu đầu ra · video · deadline">
+        <DCArtboard id="a" label="A · 2 cột, sidebar nộp bài" width={SW} height={SH}><EmpTaskA /></DCArtboard>
+        <DCArtboard id="b" label="B · 1 cột, thanh nộp cố định" width={SW} height={SH}><EmpTaskB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="emp-submit" title="NV · Nộp báo cáo HTML" subtitle="Upload file .html cho task">
+        <DCArtboard id="a" label="A · Modal upload gọn" width={SW} height={SH}><EmpSubmitA /></DCArtboard>
+        <DCArtboard id="b" label="B · Đối chiếu + xem trước" width={SW} height={SH}><EmpSubmitB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="emp-progress" title="NV · Tiến độ cá nhân" subtitle="Tổng quan của riêng nhân viên">
+        <DCArtboard id="a" label="A · Dashboard chỉ số + bảng" width={SW} height={SH}><EmpProgressA /></DCArtboard>
+        <DCArtboard id="b" label="B · Hành trình theo chặng" width={SW} height={SH}><EmpProgressB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="emp-schedule" title="NV · Lịch nộp theo tuần" subtitle="Hạn nộp từng task">
+        <DCArtboard id="a" label="A · Lịch tháng" width={SW} height={SH}><EmpScheduleA /></DCArtboard>
+        <DCArtboard id="b" label="B · Agenda theo tuần" width={SW} height={SH}><EmpScheduleB /></DCArtboard>
+      </DCSection>
+
+      {/* ── MANAGER ── */}
+      <DCSection id="mgr-matrix" title="QL · Bảng nhân viên × task" subtitle="Ma trận tiến độ toàn đội">
+        <DCArtboard id="a" label="A · Bảng matrix cổ điển" width={SW} height={SH}><MgrMatrixA /></DCArtboard>
+        <DCArtboard id="b" label="B · Bản đồ nhiệt + xếp hạng" width={SW} height={SH}><MgrMatrixB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="mgr-stats" title="QL · Thống kê tổng" subtitle="Tỉ lệ hoàn thành · trễ deadline">
+        <DCArtboard id="a" label="A · KPI + biểu đồ cột" width={SW} height={SH}><MgrStatsA /></DCArtboard>
+        <DCArtboard id="b" label="B · Số lớn + donut, gọn" width={SW} height={SH}><MgrStatsB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="mgr-profile" title="QL · Hồ sơ 1 nhân viên" subtitle="Chi tiết + bài nộp + điểm">
+        <DCArtboard id="a" label="A · Header + tabs + timeline" width={SW} height={SH}><MgrProfileA /></DCArtboard>
+        <DCArtboard id="b" label="B · Hai cột hồ sơ + bài nộp" width={SW} height={SH}><MgrProfileB /></DCArtboard>
+      </DCSection>
+
+      <DCSection id="mgr-queue" title="QL · Hàng chờ chấm bài" subtitle="Duyệt & chấm báo cáo nộp lên">
+        <DCArtboard id="a" label="A · Hộp thư danh sách" width={SW} height={SH}><MgrQueueA /></DCArtboard>
+        <DCArtboard id="b" label="B · Xem báo cáo + chấm điểm" width={SW} height={SH}><MgrQueueB /></DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
