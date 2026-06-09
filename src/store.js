@@ -1,6 +1,18 @@
 import { create } from 'zustand'
 import { supabase } from './supabase'
 
+// Fetch profile; if missing (account pre-dates trigger), create it automatically.
+async function ensureProfile(user) {
+  const { data: existing } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  if (existing) return existing
+
+  const name     = user.user_metadata?.name || user.email.split('@')[0]
+  const initials = deriveInitials(name)
+  await supabase.from('profiles').insert({ id: user.id, name, initials, role: 'employee' })
+  const { data: created } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  return created || null
+}
+
 function deriveInitials(name) {
   const parts = name.trim().split(/\s+/)
   if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
@@ -14,14 +26,14 @@ export const useStore = create((set, get) => ({
   initialize: async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      const profile = await ensureProfile(session.user)
       if (profile) set({ currentUser: { ...profile, email: session.user.email } })
     }
     set({ initialized: true })
 
     supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session) {
+        const profile = await ensureProfile(session.user)
         if (profile) set({ currentUser: { ...profile, email: session.user.email } })
       }
       if (event === 'SIGNED_OUT') set({ currentUser: null })

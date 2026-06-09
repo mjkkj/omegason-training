@@ -29,7 +29,14 @@ export default function Login() {
     try {
       if (mode === 'login') {
         await login(email, password)
-        // redirect handled by useEffect above
+        // Redirect handled by useEffect; give it 3s then show hint
+        setTimeout(() => {
+          if (!useStore.getState().currentUser) {
+            setError('Đăng nhập xong nhưng không tải được hồ sơ. Thử làm mới trang (F5).')
+            setLoading(false)
+          }
+        }, 3000)
+        return
       } else {
         if (!name.trim()) throw new Error('Vui lòng nhập họ tên')
         await signup(email, password, name.trim())
