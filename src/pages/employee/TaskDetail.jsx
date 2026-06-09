@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Ico, Ph, Skel } from '../../design-system'
-import { useStore, fetchMySubmissions } from '../../store'
+import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
 import { TASKS, TASK_CONTENT } from '../../data'
+
+function getYtId(url) {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+  return m ? m[1] : null
+}
 
 function daysLeft(deadline) {
   const d = Math.ceil((new Date(deadline) - new Date()) / 86400000)
@@ -21,16 +26,21 @@ export default function TaskDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useStore()
-  const [sub, setSub] = useState(null)
+  const [sub, setSub]       = useState(null)
   const [loading, setLoading] = useState(true)
+  const [taskVideos, setTaskVideos] = useState(null)
 
   const task    = TASKS.find(t => t.id === id)
   const content = TASK_CONTENT[id] || {}
 
   useEffect(() => {
     if (!currentUser || !task) return
-    fetchMySubmissions(currentUser.id).then(data => {
-      setSub(data.find(s => s.task_id === id) || null)
+    Promise.all([
+      fetchMySubmissions(currentUser.id),
+      fetchTaskVideos(id),
+    ]).then(([subs, vids]) => {
+      setSub(subs.find(s => s.task_id === id) || null)
+      setTaskVideos(vids)
       setLoading(false)
     })
   }, [currentUser?.id, id])
@@ -79,16 +89,43 @@ export default function TaskDetail() {
             </div>
           </div>
 
-          {content.videos && (
+          {taskVideos !== null && taskVideos.length > 0 && (
             <div>
               <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
-                {content.videos.map((v, i) => (
-                  <div key={i}>
-                    <Ph label="video" h={100} />
-                    <div style={{ fontSize:12.5, fontWeight:600, marginTop:7 }}>{v}</div>
-                  </div>
-                ))}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
+                {taskVideos.map((v, i) => {
+                  const ytId = getYtId(v.url)
+                  return (
+                    <a key={i} href={v.url} target="_blank" rel="noopener noreferrer"
+                      style={{ textDecoration:'none', display:'block' }}>
+                      <Card pad={0} style={{ overflow:'hidden', transition:'box-shadow .15s' }}
+                        onMouseEnter={e => e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,.1)'}
+                        onMouseLeave={e => e.currentTarget.style.boxShadow='none'}>
+                        {ytId ? (
+                          <div style={{ position:'relative' }}>
+                            <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
+                              alt={v.title} style={{ width:'100%', height:110, objectFit:'cover', display:'block' }} />
+                            <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center',
+                              justifyContent:'center', background:'rgba(0,0,0,.25)' }}>
+                              <div style={{ width:40, height:40, borderRadius:40, background:'rgba(255,255,255,.92)',
+                                display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                <Ico name="play" s={18} c={W.acc} />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ height:80, background:W.accSoft, display:'flex',
+                            alignItems:'center', justifyContent:'center' }}>
+                            <Ico name="play" s={28} c={W.acc} />
+                          </div>
+                        )}
+                        <div style={{ padding:'10px 12px' }}>
+                          <div style={{ fontSize:12.5, fontWeight:600, color:W.ink, lineHeight:1.3 }}>{v.title}</div>
+                        </div>
+                      </Card>
+                    </a>
+                  )
+                })}
               </div>
             </div>
           )}

@@ -117,6 +117,25 @@ export async function upsertSubmission({ employeeId, taskId, fileName, fileConte
   if (error) throw error
 }
 
+export async function fetchTaskResources() {
+  const { data, error } = await supabase.from('task_resources').select('task_id, videos')
+  if (error) throw error
+  const result = {}
+  ;(data || []).forEach(row => { result[row.task_id] = row.videos || [] })
+  return result
+}
+
+export async function fetchTaskVideos(taskId) {
+  const { data } = await supabase.from('task_resources').select('videos').eq('task_id', taskId).single()
+  return data?.videos || []
+}
+
+export async function saveTaskVideos(taskId, videos) {
+  const { error } = await supabase.from('task_resources')
+    .upsert({ task_id: taskId, videos, updated_at: new Date().toISOString() }, { onConflict: 'task_id' })
+  if (error) throw error
+}
+
 export async function gradeSubmission({ submissionId, grade, feedback, approved }) {
   const { error } = await supabase.from('submissions').update({
     status: approved ? 'graded' : 'revision',

@@ -13,6 +13,7 @@ import Matrix from './pages/manager/Matrix'
 import Queue from './pages/manager/Queue'
 import Profile from './pages/manager/Profile'
 import Employees from './pages/manager/Employees'
+import Training from './pages/manager/Training'
 
 function Guard({ role, children }) {
   const { currentUser, initialized } = useStore()
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/mgr/queue/:subId" element={<Guard role="manager"><Queue /></Guard>} />
         <Route path="/mgr/employees"    element={<Guard role="manager"><Employees /></Guard>} />
         <Route path="/mgr/employee/:id" element={<Guard role="manager"><Profile /></Guard>} />
+        <Route path="/mgr/training"     element={<Guard role="manager"><Training /></Guard>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
