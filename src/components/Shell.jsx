@@ -27,10 +27,10 @@ function getActiveIdx(nav, pathname) {
 export default function Shell({ role = 'emp', title, sub, actions, children, pad = 26, body = W.panel }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout, getPendingQueue } = useStore();
+  const { currentUser, logout } = useStore();
   const nav = role === 'emp' ? EMP_NAV : MGR_NAV;
   const active = getActiveIdx(nav, location.pathname);
-  const pendingCount = role === 'mgr' ? getPendingQueue().length : 0;
+  const pendingCount = 0;
 
   const handleLogout = async () => {
     await logout();
