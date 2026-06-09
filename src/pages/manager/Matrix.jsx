@@ -1,130 +1,121 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
-import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar } from '../../design-system'
-import { useStore } from '../../store'
-import { TASKS, EMPLOYEES } from '../../data'
+import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar, Skel } from '../../design-system'
+import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
+import { TASKS } from '../../data'
 
-const TASK_COLS = [...TASKS.map(t => t.id)]
+const TASK_IDS = TASKS.map(t => t.id)
 
-function cellStatus(empId, taskId, submissions) {
-  const sub = submissions.find(s => s.employeeId === empId && s.taskId === taskId)
+function cellStatus(empId, taskId, subs) {
+  const sub = subs.find(s => s.employee_id === empId && s.task_id === taskId)
   if (!sub) {
     const task = TASKS.find(t => t.id === taskId)
-    if (task && new Date() > new Date(task.deadline)) return 'late-miss'
-    return 'empty'
+    return task && new Date() > new Date(task.deadline) ? 'late-miss' : 'empty'
   }
-  if (sub.status === 'graded') return 'done'
-  if (sub.status === 'pending') return 'review'
-  if (sub.status === 'revision') return 'revision'
-  return 'empty'
+  return sub.status === 'graded' ? 'done' : sub.status === 'pending' ? 'review' : sub.status === 'revision' ? 'revision' : 'empty'
 }
 
-function MxCell({ status, size = 26 }) {
+function MxCell({ status }) {
   const map = {
     done:      { bg: W.doneSoft, fg: W.done, ch:'✓' },
     review:    { bg: W.warnSoft, fg: W.warn, ch:'◷' },
     revision:  { bg: W.lateSoft, fg: W.late, ch:'↩' },
     'late-miss':{ bg: W.lateSoft, fg: W.late, ch:'!' },
-    empty:     { bg: W.paper, fg: W.ink4, ch:'' },
+    empty:     { bg: W.paper,    fg: W.ink4,  ch:'' },
   }
   const s = map[status] || map.empty
   return (
-    <div style={{ width: size, height: size, borderRadius:6, background: s.bg,
-      border: status === 'empty' ? `1px solid ${W.line2}` : 'none',
+    <div style={{ width:26, height:26, borderRadius:6, background: s.bg, flexShrink:0,
+      border: status==='empty'?`1px solid ${W.line2}`:'none',
       display:'flex', alignItems:'center', justifyContent:'center',
       fontSize:11, fontWeight:700, color: s.fg }}>{s.ch}</div>
   )
 }
 
 export default function Matrix() {
-  const { submissions } = useStore()
-  const now = new Date()
+  const [employees, setEmployees] = useState([])
+  const [subs, setSubs]           = useState([])
+  const [loading, setLoading]     = useState(true)
 
-  const rows = EMPLOYEES.map(emp => {
-    const cells = TASK_COLS.map(tid => cellStatus(emp.id, tid, submissions))
-    const doneCount = cells.filter(c => c === 'done').length
-    const pct = Math.round((doneCount / TASK_COLS.length) * 100)
-    const hasLate = cells.some(c => c === 'late-miss')
-    const isTop   = pct >= 80
-    return { ...emp, cells, pct, hasLate, isTop }
-  }).sort((a, b) => b.pct - a.pct)
+  useEffect(() => {
+    Promise.all([fetchAllProfiles(), fetchAllSubmissions()]).then(([emps, s]) => {
+      setEmployees(emps); setSubs(s); setLoading(false)
+    })
+  }, [])
 
-  const pending = submissions.filter(s => s.status === 'pending').length
+  const rows = employees.map(emp => {
+    const cells   = TASK_IDS.map(tid => cellStatus(emp.id, tid, subs))
+    const done    = cells.filter(c=>c==='done').length
+    const pct     = Math.round((done/TASK_IDS.length)*100)
+    const hasLate = cells.some(c=>c==='late-miss')
+    return { ...emp, cells, pct, hasLate }
+  }).sort((a,b) => b.pct - a.pct)
+
+  const pending = subs.filter(s=>s.status==='pending').length
 
   return (
-    <Shell role="mgr" active={1} title="Bảng tiến độ · Nhân viên × Task" sub={`${EMPLOYEES.length} nhân viên · ${TASKS.length - 1} task + final`}
+    <Shell role="mgr" title="Bảng tiến độ" sub={`${employees.length} nhân viên × ${TASKS.length} task`}
       body={W.paper}
-      actions={
-        <>
-          <Link to="/mgr/queue">
-            {pending > 0 && <Tag tone="warn">{pending} bài chờ chấm</Tag>}
-          </Link>
-          <Btn kind="ghost" size="sm" icon={<Ico name="filter" s={13}/>}>Lọc</Btn>
-        </>
-      }>
+      actions={<>{pending>0&&<Link to="/mgr/queue"><Tag tone="warn">{pending} chờ chấm</Tag></Link>}</>}>
 
-      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-        {/* legend */}
-        <div style={{ display:'flex', gap:16, alignItems:'center', flexWrap:'wrap' }}>
-          {[
-            ['done','Đã chấm'],['review','Chờ chấm'],['revision','Cần sửa'],['late-miss','Trễ hạn'],['empty','Chưa làm'],
-          ].map(([t, l]) => (
-            <div key={t} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              <MxCell status={t} size={16} />
-              <span style={{ fontSize:11.5, color: W.ink2 }}>{l}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* matrix table */}
-        <Card pad={0} style={{ overflow:'auto' }}>
-          {/* header */}
-          <div style={{ display:'flex', alignItems:'center', padding:'10px 14px', background: W.panel,
-            borderBottom:`1px solid ${W.line2}`, position:'sticky', top:0, zIndex:1 }}>
-            <div style={{ width:168, fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>NHÂN VIÊN</div>
-            <div style={{ flex:1, display:'flex', gap:4, minWidth:0 }}>
-              {TASK_COLS.map(t => (
-                <div key={t} style={{ width:26, textAlign:'center', fontSize:10.5, fontWeight:700,
-                  color: t === 'F' ? W.acc : t === '10' ? W.warn : W.ink3, fontFamily: W.mono, flexShrink:0 }}>{t}</div>
-              ))}
-            </div>
-            <div style={{ width:100, textAlign:'right', fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>TIẾN ĐỘ</div>
+      {loading ? <Skel lines={8} gap={14} /> : (
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+            {[['done','Đã chấm'],['review','Chờ chấm'],['revision','Cần sửa'],['late-miss','Trễ hạn'],['empty','Chưa làm']].map(([t,l]) => (
+              <div key={t} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <MxCell status={t} /><span style={{ fontSize:11.5, color: W.ink2 }}>{l}</span>
+              </div>
+            ))}
           </div>
 
-          {rows.map((emp, i) => (
-            <Link key={emp.id} to={`/mgr/employee/${emp.id}`} style={{ textDecoration:'none', display:'block' }}>
-              <div style={{ display:'flex', alignItems:'center', padding:'9px 14px',
-                borderTop: i ? `1px solid ${W.line2}` : 'none',
-                background: emp.hasLate ? W.lateSoft : '#fff',
-                transition:'background .12s', cursor:'pointer' }}
-                onMouseEnter={e => { if (!emp.hasLate) e.currentTarget.style.background = W.panel }}
-                onMouseLeave={e => { e.currentTarget.style.background = emp.hasLate ? W.lateSoft : '#fff' }}>
+          <Card pad={0} style={{ overflow:'auto' }}>
+            <div style={{ display:'flex', alignItems:'center', padding:'10px 14px',
+              background: W.panel, borderBottom:`1px solid ${W.line2}`, position:'sticky', top:0, zIndex:1 }}>
+              <div style={{ width:168, fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>NHÂN VIÊN</div>
+              <div style={{ flex:1, display:'flex', gap:4 }}>
+                {TASK_IDS.map(t => (
+                  <div key={t} style={{ width:26, textAlign:'center', fontSize:10.5, fontWeight:700, flexShrink:0,
+                    color: t==='F'?W.acc:t==='10'?W.warn:W.ink3, fontFamily: W.mono }}>{t}</div>
+                ))}
+              </div>
+              <div style={{ width:100, textAlign:'right', fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>TIẾN ĐỘ</div>
+            </div>
 
-                <div style={{ width:168, display:'flex', alignItems:'center', gap:9 }}>
-                  <Avatar s={26} txt={emp.initials} />
-                  <div style={{ minWidth:0 }}>
-                    <div style={{ fontSize:12.5, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden',
-                      textOverflow:'ellipsis', color: W.ink }}>{emp.name}</div>
-                    {emp.hasLate && <div style={{ fontSize:9.5, color: W.late, fontWeight:600 }}>Có task trễ</div>}
-                    {emp.isTop  && <div style={{ fontSize:9.5, color: W.done, fontWeight:600 }}>Dẫn đầu</div>}
+            {rows.length === 0 && (
+              <div style={{ padding:'32px 16px', textAlign:'center', color: W.ink3 }}>
+                Chưa có nhân viên nào. Nhắn nhân viên đăng ký tại app.
+              </div>
+            )}
+
+            {rows.map((emp, i) => (
+              <Link key={emp.id} to={`/mgr/employee/${emp.id}`} style={{ textDecoration:'none', display:'block' }}>
+                <div style={{ display:'flex', alignItems:'center', padding:'9px 14px',
+                  borderTop:i?`1px solid ${W.line2}`:'none',
+                  background: emp.hasLate ? W.lateSoft : '#fff', transition:'background .12s', cursor:'pointer' }}
+                  onMouseEnter={e=>{ if(!emp.hasLate) e.currentTarget.style.background=W.panel }}
+                  onMouseLeave={e=>{ e.currentTarget.style.background=emp.hasLate?W.lateSoft:'#fff' }}>
+                  <div style={{ width:168, display:'flex', alignItems:'center', gap:9 }}>
+                    <Avatar s={26} txt={emp.initials} />
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontSize:12.5, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden',
+                        textOverflow:'ellipsis', color: W.ink }}>{emp.name}</div>
+                      {emp.hasLate && <div style={{ fontSize:9.5, color: W.late, fontWeight:600 }}>Có task trễ</div>}
+                    </div>
+                  </div>
+                  <div style={{ flex:1, display:'flex', gap:4 }}>
+                    {emp.cells.map((c,j) => <MxCell key={j} status={c} />)}
+                  </div>
+                  <div style={{ width:100, display:'flex', alignItems:'center', gap:7, justifyContent:'flex-end' }}>
+                    <Bar pct={emp.pct} h={6} style={{ width:50 }} c={emp.hasLate?W.late:emp.pct>=80?W.done:W.acc} />
+                    <span style={{ fontSize:11, fontWeight:700, width:32, textAlign:'right', fontFamily: W.mono }}>{emp.pct}%</span>
                   </div>
                 </div>
-
-                <div style={{ flex:1, display:'flex', gap:4 }}>
-                  {emp.cells.map((c, j) => <MxCell key={j} status={c} />)}
-                </div>
-
-                <div style={{ width:100, display:'flex', alignItems:'center', gap:7, justifyContent:'flex-end' }}>
-                  <Bar pct={emp.pct} h={6} style={{ width:50 }}
-                    c={emp.hasLate ? W.late : emp.isTop ? W.done : W.acc} />
-                  <span style={{ fontSize:11, fontWeight:700, width:32, textAlign:'right',
-                    fontFamily: W.mono }}>{emp.pct}%</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </Card>
-      </div>
+              </Link>
+            ))}
+          </Card>
+        </div>
+      )}
     </Shell>
   )
 }

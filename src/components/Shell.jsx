@@ -32,8 +32,8 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
   const active = getActiveIdx(nav, location.pathname);
   const pendingCount = role === 'mgr' ? getPendingQueue().length : 0;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 

@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
-import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Avatar } from '../../design-system'
-import { useStore } from '../../store'
+import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Skel } from '../../design-system'
+import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS } from '../../data'
 
 function formatDate(iso) {
@@ -11,84 +12,71 @@ function formatDate(iso) {
 }
 
 export default function Progress() {
-  const { currentUser, submissions } = useStore()
-  const empId = currentUser?.id
-  const now = new Date()
+  const { currentUser } = useStore()
+  const [subs, setSubs]     = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const mySubs = submissions.filter(s => s.employeeId === empId)
-  const graded  = mySubs.filter(s => s.status === 'graded')
-  const pending = mySubs.filter(s => s.status === 'pending')
+  useEffect(() => {
+    if (!currentUser) return
+    fetchMySubmissions(currentUser.id).then(data => { setSubs(data); setLoading(false) })
+  }, [currentUser?.id])
 
-  const total = TASKS.length
+  const graded  = subs.filter(s => s.status === 'graded')
+  const pending = subs.filter(s => s.status === 'pending')
+  const total   = TASKS.length
   const donePct = Math.round((graded.length / total) * 100)
-
   const avgGrade = graded.length
-    ? Math.round((graded.reduce((s, x) => s + (x.grade || 0), 0) / graded.length) * 10) / 10
+    ? Math.round((graded.reduce((s,x) => s + (x.grade||0), 0) / graded.length) * 10) / 10
     : null
-
-  // On-time submissions (submitted before deadline)
-  const onTime = graded.filter(s => {
-    const task = TASKS.find(t => t.id === s.taskId)
-    return task && new Date(s.submittedAt) <= new Date(task.deadline)
+  const onTime  = graded.filter(s => {
+    const task = TASKS.find(t => t.id === s.task_id)
+    return task && new Date(s.submitted_at) <= new Date(task.deadline)
   }).length
 
-  // Recent submissions (most recent first)
-  const recent = [...mySubs].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0, 8)
-
-  // Week progress
   const weeks = [1,2,3,4].map(w => {
-    const wTasks = TASKS.filter(t => t.week === w)
-    const wDone  = wTasks.filter(t => graded.find(s => s.taskId === t.id)).length
-    return { w, pct: Math.round((wDone / wTasks.length) * 100), done: wDone, total: wTasks.length }
+    const wt = TASKS.filter(t => t.week === w)
+    const wd = wt.filter(t => graded.find(s => s.task_id === t.id)).length
+    return { w, pct: Math.round((wd/wt.length)*100), done: wd, total: wt.length }
   })
 
   return (
-    <Shell role="emp" active={0} title="Tổng quan tiến độ" sub={`${currentUser?.name} · NV mới`}
-      actions={
-        <Link to="/emp/schedule">
-          <Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>Xem lịch</Btn>
-        </Link>
-      }>
-
+    <Shell role="emp" title="Tổng quan tiến độ" sub={currentUser?.name}
+      actions={<Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>Xem lịch</Btn></Link>}>
       <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-        {/* KPI row */}
         <div style={{ display:'flex', gap:12 }}>
-          <Stat n={graded.length} label="Đã nộp & chấm" sub={`trên ${total} task`} />
-          <Stat n={pending.length} label="Đang chờ chấm" tone={pending.length ? W.warn : W.ink} />
-          <Stat n={avgGrade ?? '—'} label="Điểm trung bình" tone={W.done} sub="thang 10" />
-          <Stat n={onTime} label="Đúng hạn liên tiếp" tone={W.acc} />
+          <Stat n={graded.length}  label="Đã nộp & chấm"     sub={`trên ${total} task`} />
+          <Stat n={pending.length} label="Đang chờ chấm"     tone={pending.length ? W.warn : W.ink} />
+          <Stat n={avgGrade ?? '—'} label="Điểm trung bình"  tone={W.done} sub="thang 10" />
+          <Stat n={onTime}          label="Đúng hạn"          tone={W.acc} />
         </div>
 
         <div style={{ display:'flex', gap:14 }}>
-          {/* ring + week bars */}
-          <div style={{ display:'flex', flexDirection:'column', gap:14, width:230, flexShrink:0 }}>
+          <div style={{ width:230, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
             <Card pad={18} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
               <Ring pct={donePct} label={`${donePct}%`} sub="hoàn thành" size={128} stroke={12}
-                c={donePct === 100 ? W.done : W.acc} />
+                c={donePct===100 ? W.done : W.acc} />
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontSize:13, fontWeight:700 }}>{graded.length} / {total} task</div>
-                <T size={11.5} style={{ marginTop:3 }}>Còn {total - graded.length} task để hoàn tất khoá</T>
+                <T size={11.5} style={{ marginTop:3 }}>Còn {total - graded.length} task</T>
               </div>
             </Card>
-
             <Card pad={16}>
               <T size={11} mono c={W.ink3} mb={12}>TIẾN ĐỘ THEO TUẦN</T>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {weeks.map(({ w, pct, done, total:wt }) => (
+                {weeks.map(({w,pct,done,total:wt}) => (
                   <div key={w}>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
                       <span style={{ fontSize:12, fontWeight:600 }}>Tuần {w}</span>
                       <span style={{ fontSize:11, color: W.ink3, fontFamily: W.mono }}>{done}/{wt}</span>
                     </div>
-                    <Bar pct={pct} h={6} c={pct === 100 ? W.done : W.acc} />
+                    <Bar pct={pct} h={6} c={pct===100 ? W.done : W.acc} />
                   </div>
                 ))}
               </div>
             </Card>
           </div>
 
-          {/* submissions table */}
-          <Card pad={0} style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+          <Card pad={0} style={{ flex:1, minWidth:0, overflow:'hidden' }}>
             <div style={{ padding:'13px 16px', borderBottom:`1px solid ${W.line2}` }}>
               <H size={14}>Bài nộp gần đây</H>
             </div>
@@ -100,23 +88,23 @@ export default function Progress() {
               <div style={{ width:70 }}>ĐIỂM</div>
               <div style={{ width:120 }}>TRẠNG THÁI</div>
             </div>
-            {recent.length === 0 && (
+            {loading && <div style={{ padding:20 }}><Skel lines={5} /></div>}
+            {!loading && subs.length === 0 && (
               <div style={{ padding:'32px 16px', textAlign:'center', color: W.ink3, fontSize:13 }}>
-                Chưa có bài nộp nào. <Link to="/emp/roadmap" style={{ color: W.acc }}>Xem lộ trình →</Link>
+                Chưa có bài nộp. <Link to="/emp/roadmap" style={{ color: W.acc }}>Xem lộ trình →</Link>
               </div>
             )}
-            {recent.map((s, i) => {
-              const task = TASKS.find(t => t.id === s.taskId)
+            {subs.map(s => {
+              const task = TASKS.find(t => t.id === s.task_id)
               return (
                 <div key={s.id} style={{ display:'flex', alignItems:'center', padding:'11px 16px',
                   borderTop:`1px solid ${W.line2}`, fontSize:13 }}>
-                  <div style={{ width:40, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>{s.taskId}</div>
-                  <div style={{ flex:1, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
-                    paddingRight:8 }}>{task?.name}</div>
-                  <div style={{ width:70, color: W.ink2, fontFamily: W.mono }}>{formatDate(s.submittedAt)}</div>
-                  <div style={{ width:70, fontWeight:700,
-                    color: s.grade != null ? W.done : W.ink4 }}>
-                    {s.grade != null ? s.grade : '—'}
+                  <div style={{ width:40, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>{s.task_id}</div>
+                  <div style={{ flex:1, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis',
+                    whiteSpace:'nowrap', paddingRight:8 }}>{task?.name}</div>
+                  <div style={{ width:70, color: W.ink2, fontFamily: W.mono }}>{formatDate(s.submitted_at)}</div>
+                  <div style={{ width:70, fontWeight:700, color: s.grade!=null ? W.done : W.ink4 }}>
+                    {s.grade ?? '—'}
                   </div>
                   <div style={{ width:120 }}>
                     {s.status === 'graded'   && <Tag tone="done">Đã chấm</Tag>}

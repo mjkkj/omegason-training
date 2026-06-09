@@ -1,94 +1,96 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { generateInitialSubmissions, TASKS } from './data'
+import { supabase } from './supabase'
 
-function calcProgress(employeeId, submissions) {
-  const total = TASKS.length; // 11 including final
-  const done = submissions.filter(s => s.employeeId === employeeId && s.status === 'graded').length;
-  return Math.round((done / total) * 100);
+function deriveInitials(name) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  return name.slice(0, 2).toUpperCase()
 }
 
-function calcAvgGrade(employeeId, submissions) {
-  const graded = submissions.filter(s => s.employeeId === employeeId && s.status === 'graded' && s.grade != null);
-  if (!graded.length) return null;
-  return Math.round((graded.reduce((sum, s) => sum + s.grade, 0) / graded.length) * 10) / 10;
-}
+export const useStore = create((set, get) => ({
+  currentUser: null,
+  initialized: false,
 
-export const useStore = create(
-  persist(
-    (set, get) => ({
-      currentUser: null,
-      submissions: generateInitialSubmissions(),
-
-      login: (user) => set({ currentUser: user }),
-      logout: () => set({ currentUser: null }),
-
-      submitReport: ({ employeeId, taskId, fileName, fileContent, fileSize, note }) => {
-        const { submissions } = get();
-        const existing = submissions.find(s => s.employeeId === employeeId && s.taskId === taskId);
-        if (existing) {
-          set({
-            submissions: submissions.map(s =>
-              s.id === existing.id
-                ? { ...s, status: 'pending', fileName, fileContent, fileSize, note,
-                    submittedAt: new Date().toISOString(), grade: null, feedback: null, gradedAt: null }
-                : s
-            ),
-          });
-        } else {
-          set({
-            submissions: [...submissions, {
-              id: `sub-${employeeId}-${taskId}-${Date.now()}`,
-              employeeId, taskId, status: 'pending',
-              fileName, fileContent, fileSize, note,
-              submittedAt: new Date().toISOString(),
-              grade: null, feedback: null, gradedAt: null,
-            }],
-          });
-        }
-      },
-
-      gradeSubmission: ({ submissionId, grade, feedback, approved }) => {
-        set({
-          submissions: get().submissions.map(s =>
-            s.id === submissionId
-              ? { ...s, status: approved ? 'graded' : 'revision', grade: approved ? grade : null,
-                  feedback, gradedAt: new Date().toISOString() }
-              : s
-          ),
-        });
-      },
-
-      // Derived helpers (called by components)
-      getEmployeeProgress: (employeeId) => {
-        const { submissions } = get();
-        return {
-          pct: calcProgress(employeeId, submissions),
-          avgGrade: calcAvgGrade(employeeId, submissions),
-          submitted: submissions.filter(s => s.employeeId === employeeId).length,
-          graded: submissions.filter(s => s.employeeId === employeeId && s.status === 'graded').length,
-          pending: submissions.filter(s => s.employeeId === employeeId && s.status === 'pending').length,
-        };
-      },
-
-      getSubmission: (employeeId, taskId) => {
-        return get().submissions.find(s => s.employeeId === employeeId && s.taskId === taskId) || null;
-      },
-
-      getPendingQueue: () => {
-        return get().submissions.filter(s => s.status === 'pending');
-      },
-    }),
-    {
-      name: 'omegason-training-v2',
-      partialize: (state) => ({
-        currentUser: state.currentUser,
-        submissions: state.submissions.map(s => ({
-          ...s,
-          // Truncate stored content to avoid localStorage overflow (keep first 50KB)
-          fileContent: s.fileContent ? s.fileContent.slice(0, 51200) : null,
-        })),
-      }),
+  initialize: async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+      if (profile) set({ currentUser: { ...profile, email: session.user.email } })
     }
-  )
-);
+    set({ initialized: true })
+
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        if (profile) set({ currentUser: { ...profile, email: session.user.email } })
+      }
+      if (event === 'SIGNED_OUT') set({ currentUser: null })
+    })
+  },
+
+  login: async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  },
+
+  signup: async (email, password, name) => {
+    const initials = deriveInitials(name)
+    const { error } = await supabase.auth.signUp({
+      email, password,
+      options: { data: { name, initials } },
+    })
+    if (error) throw error
+  },
+
+  logout: async () => {
+    await supabase.auth.signOut()
+    set({ currentUser: null })
+  },
+}))
+
+// ── Data helpers (called directly from pages) ──────────────────────────────
+
+export async function fetchMySubmissions(employeeId) {
+  const { data, error } = await supabase.from('submissions').select('*').eq('employee_id', employeeId).order('submitted_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function fetchAllSubmissions() {
+  const { data, error } = await supabase.from('submissions').select('*, profiles(id,name,initials,role)').order('submitted_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function fetchAllProfiles() {
+  const { data, error } = await supabase.from('profiles').select('*').eq('role', 'employee').order('name')
+  if (error) throw error
+  return data || []
+}
+
+export async function upsertSubmission({ employeeId, taskId, fileName, fileContent, fileSize, note }) {
+  const { error } = await supabase.from('submissions').upsert({
+    employee_id: employeeId,
+    task_id: taskId,
+    status: 'pending',
+    file_name: fileName,
+    file_content: fileContent,
+    file_size: fileSize,
+    note: note || '',
+    submitted_at: new Date().toISOString(),
+    grade: null,
+    feedback: null,
+    graded_at: null,
+  }, { onConflict: 'employee_id,task_id' })
+  if (error) throw error
+}
+
+export async function gradeSubmission({ submissionId, grade, feedback, approved }) {
+  const { error } = await supabase.from('submissions').update({
+    status: approved ? 'graded' : 'revision',
+    grade: approved ? grade : null,
+    feedback,
+    graded_at: new Date().toISOString(),
+  }).eq('id', submissionId)
+  if (error) throw error
+}

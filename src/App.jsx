@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './store'
+import { W } from './design-system'
 
 import Login from './pages/Login'
 import Roadmap from './pages/employee/Roadmap'
@@ -14,9 +15,18 @@ import Profile from './pages/manager/Profile'
 import Employees from './pages/manager/Employees'
 
 function Guard({ role, children }) {
-  const currentUser = useStore(s => s.currentUser)
+  const { currentUser, initialized } = useStore()
+
+  if (!initialized) return (
+    <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
+      fontFamily: W.font, color: W.ink3, fontSize:14 }}>
+      Đang tải…
+    </div>
+  )
   if (!currentUser) return <Navigate to="/" replace />
-  if (currentUser.role !== role) return <Navigate to={currentUser.role === 'manager' ? '/mgr/stats' : '/emp/roadmap'} replace />
+  if (currentUser.role !== role) {
+    return <Navigate to={currentUser.role === 'manager' ? '/mgr/stats' : '/emp/roadmap'} replace />
+  }
   return children
 }
 
@@ -34,12 +44,12 @@ export default function App() {
         <Route path="/emp/schedule"   element={<Guard role="employee"><Schedule /></Guard>} />
 
         <Route path="/mgr" element={<Navigate to="/mgr/stats" replace />} />
-        <Route path="/mgr/stats"           element={<Guard role="manager"><Stats /></Guard>} />
-        <Route path="/mgr/matrix"          element={<Guard role="manager"><Matrix /></Guard>} />
-        <Route path="/mgr/queue"           element={<Guard role="manager"><Queue /></Guard>} />
-        <Route path="/mgr/queue/:subId"    element={<Guard role="manager"><Queue /></Guard>} />
-        <Route path="/mgr/employees"       element={<Guard role="manager"><Employees /></Guard>} />
-        <Route path="/mgr/employee/:id"    element={<Guard role="manager"><Profile /></Guard>} />
+        <Route path="/mgr/stats"        element={<Guard role="manager"><Stats /></Guard>} />
+        <Route path="/mgr/matrix"       element={<Guard role="manager"><Matrix /></Guard>} />
+        <Route path="/mgr/queue"        element={<Guard role="manager"><Queue /></Guard>} />
+        <Route path="/mgr/queue/:subId" element={<Guard role="manager"><Queue /></Guard>} />
+        <Route path="/mgr/employees"    element={<Guard role="manager"><Employees /></Guard>} />
+        <Route path="/mgr/employee/:id" element={<Guard role="manager"><Profile /></Guard>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
