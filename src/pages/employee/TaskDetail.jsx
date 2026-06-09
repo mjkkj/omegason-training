@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Ico, Ph, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
-import { TASKS, TASK_CONTENT } from '../../data'
+import { TASKS, TASK_CONTENT, calcDeadline } from '../../data'
 
 function getYtId(url) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -47,7 +47,7 @@ export default function TaskDetail() {
 
   if (!task) return <div style={{ padding:32 }}>Không tìm thấy task.</div>
 
-  const dl  = daysLeft(task.deadline)
+  const dl  = daysLeft(calcDeadline(task, currentUser?.start_date))
   const stTone = sub?.status === 'graded' ? 'done' : sub?.status === 'pending' ? 'warn' : sub?.status === 'revision' ? 'late' : dl.tone === 'late' ? 'late' : 'neutral'
   const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
 
@@ -76,7 +76,7 @@ export default function TaskDetail() {
             style={{ textAlign:'center', minWidth:130, flexShrink:0 }}>
             <T size={10.5} mono c={dl.tone === 'late' ? W.late : W.acc} mb={4}>HẠN NỘP</T>
             <div style={{ fontSize:22, fontWeight:800, color: dl.tone === 'late' ? W.late : W.ink, lineHeight:1 }}>{dl.txt}</div>
-            <T size={10.5} c={W.ink2} style={{ marginTop:3 }}>{formatDeadline(task.deadline)}</T>
+            <T size={10.5} c={W.ink2} style={{ marginTop:3 }}>{formatDeadline(calcDeadline(task, currentUser?.start_date))}</T>
           </Card>
         </div>
 

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
-import { TASKS } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 import { supabase } from '../../supabase'
 
 function fmtDate(iso) {
@@ -45,7 +45,7 @@ export default function Profile() {
     : null
   const onTime = graded.filter(s => {
     const task = TASKS.find(t => t.id === s.task_id)
-    return task && new Date(s.submitted_at) <= new Date(task.deadline)
+    return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, emp?.start_date))
   }).length
 
   const taskRows = TASKS.map(task => {

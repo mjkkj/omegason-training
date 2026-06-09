@@ -8,18 +8,27 @@ export const WEEKS = [
 ];
 
 export const TASKS = [
-  { id: '01', name: 'Dùng ChatGPT/AI cho công việc', week: 1, deadline: '2026-06-05T18:00:00', file: '01-ai-learning-report.html', hours: 2 },
-  { id: '02', name: 'Tạo báo cáo HTML cơ bản', week: 1, deadline: '2026-06-08T18:00:00', file: '02-html-report-template.html', hours: 3 },
-  { id: '03', name: 'Shopify store setup cơ bản', week: 2, deadline: '2026-06-12T18:00:00', file: '03-shopify-basic-report.html', hours: 3 },
-  { id: '04', name: 'Đăng sản phẩm & viết mô tả', week: 2, deadline: '2026-06-15T18:00:00', file: '04-product-upload-report.html', hours: 2 },
-  { id: '05', name: 'Canva cho ảnh sản phẩm & banner', week: 3, deadline: '2026-06-19T18:00:00', file: '05-canva-design-report.html', hours: 3 },
-  { id: '06', name: 'Google Sheet quản lý sản phẩm', week: 3, deadline: '2026-06-22T18:00:00', file: '06-google-sheet-report.html', hours: 2 },
-  { id: '07', name: 'Meta/Facebook Pixel', week: 4, deadline: '2026-06-23T18:00:00', file: '07-meta-pixel-report.html', hours: 2 },
-  { id: '08', name: 'Google Merchant Center', week: 4, deadline: '2026-06-25T18:00:00', file: '08-google-merchant-report.html', hours: 2 },
-  { id: '09', name: 'Pinterest Sales Channel', week: 4, deadline: '2026-06-27T18:00:00', file: '09-pinterest-report.html', hours: 2 },
-  { id: '10', name: 'Store QA trước khi launch', week: 4, deadline: '2026-06-29T18:00:00', file: '10-store-qa-report.html', hours: 4, key: true },
-  { id: 'F',  name: 'Mini-brand final project', week: 5, deadline: '2026-06-30T18:00:00', file: 'final-mini-brand.html', hours: 8, final: true },
+  { id: '01', name: 'Dùng ChatGPT/AI cho công việc',    week: 1, daysFromStart:  4, file: '01-ai-learning-report.html',    hours: 2 },
+  { id: '02', name: 'Tạo báo cáo HTML cơ bản',          week: 1, daysFromStart:  7, file: '02-html-report-template.html',  hours: 3 },
+  { id: '03', name: 'Shopify store setup cơ bản',        week: 2, daysFromStart: 11, file: '03-shopify-basic-report.html',  hours: 3 },
+  { id: '04', name: 'Đăng sản phẩm & viết mô tả',       week: 2, daysFromStart: 14, file: '04-product-upload-report.html', hours: 2 },
+  { id: '05', name: 'Canva cho ảnh sản phẩm & banner',   week: 3, daysFromStart: 18, file: '05-canva-design-report.html',   hours: 3 },
+  { id: '06', name: 'Google Sheet quản lý sản phẩm',    week: 3, daysFromStart: 21, file: '06-google-sheet-report.html',   hours: 2 },
+  { id: '07', name: 'Meta/Facebook Pixel',               week: 4, daysFromStart: 22, file: '07-meta-pixel-report.html',    hours: 2 },
+  { id: '08', name: 'Google Merchant Center',            week: 4, daysFromStart: 24, file: '08-google-merchant-report.html',hours: 2 },
+  { id: '09', name: 'Pinterest Sales Channel',           week: 4, daysFromStart: 26, file: '09-pinterest-report.html',     hours: 2 },
+  { id: '10', name: 'Store QA trước khi launch',         week: 4, daysFromStart: 28, file: '10-store-qa-report.html',      hours: 4, key: true },
+  { id: 'F',  name: 'Mini-brand final project',          week: 5, daysFromStart: 35, file: 'final-mini-brand.html',        hours: 8, final: true },
 ];
+
+// Calculate a task's absolute deadline from the employee's start_date (ISO date string 'YYYY-MM-DD')
+export function calcDeadline(task, startDate) {
+  if (!startDate) {
+    const d = new Date(); d.setDate(d.getDate() + task.daysFromStart); d.setHours(18,0,0,0); return d.toISOString()
+  }
+  const [y, m, day] = startDate.split('-').map(Number)
+  return new Date(y, m - 1, day + task.daysFromStart, 18, 0, 0).toISOString()
+}
 
 export const TASK_CONTENT = {
   '01': {

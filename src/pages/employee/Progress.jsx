@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -30,7 +30,7 @@ export default function Progress() {
     : null
   const onTime  = graded.filter(s => {
     const task = TASKS.find(t => t.id === s.task_id)
-    return task && new Date(s.submitted_at) <= new Date(task.deadline)
+    return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, currentUser?.start_date))
   }).length
 
   const weeks = [1,2,3,4].map(w => {

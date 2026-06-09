@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 
 function daysLeftLabel(deadline, sub) {
   if (sub?.status === 'graded')  return sub.grade != null ? `${sub.grade}đ` : 'Đã nộp'
@@ -41,10 +41,11 @@ export default function Schedule() {
   }, [currentUser?.id])
 
   const getSub = (tid) => subs.find(s => s.task_id === tid)
-  const now = new Date()
+  const now    = new Date()
+  const dl     = (t) => calcDeadline(t, currentUser?.start_date)
 
-  const upcoming = TASKS.filter(t => new Date(t.deadline) >= now)
-  const past     = TASKS.filter(t => new Date(t.deadline) < now)
+  const upcoming = TASKS.filter(t => new Date(dl(t)) >= now)
+  const past     = TASKS.filter(t => new Date(dl(t)) < now)
 
   const groups = []
   const weekMap = {}
@@ -85,8 +86,8 @@ export default function Schedule() {
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {g.tasks.map(task => {
                 const sub  = getSub(task.id)
-                const tone = deadlineTone(task.deadline, sub)
-                const label = daysLeftLabel(task.deadline, sub)
+                const tone = deadlineTone(dl(task), sub)
+                const label = daysLeftLabel(dl(task), sub)
                 return (
                   <Card key={task.id} pad={13}
                     fill={sub?.status === 'graded' ? W.doneSoft : '#fff'}
@@ -103,7 +104,7 @@ export default function Schedule() {
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
                         <Ico name="clock" s={12} c={W.ink3} />
-                        <T size={11.5} c={W.ink3}>{fmtDeadline(task.deadline)}</T>
+                        <T size={11.5} c={W.ink3}>{fmtDeadline(dl(task))}</T>
                       </div>
                     </div>
                     <Tag tone={tone}>{label}</Tag>

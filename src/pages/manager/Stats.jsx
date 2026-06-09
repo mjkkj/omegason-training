@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
-import { TASKS, WEEKS } from '../../data'
+import { TASKS, WEEKS, calcDeadline } from '../../data'
 
 export default function Stats() {
   const [employees, setEmployees] = useState([])
@@ -20,7 +20,7 @@ export default function Stats() {
     const ms = subs.filter(s => s.employee_id === emp.id)
     const graded = ms.filter(s => s.status === 'graded')
     const pct = Math.round((graded.length / TASKS.length) * 100)
-    const hasLate = TASKS.some(t => { const sub = ms.find(s=>s.task_id===t.id); return !sub && new Date()>new Date(t.deadline) })
+    const hasLate = TASKS.some(t => { const sub = ms.find(s=>s.task_id===t.id); return !sub && new Date()>new Date(calcDeadline(t, emp.start_date)) })
     return { ...emp, pct, hasLate, pending: ms.filter(s=>s.status==='pending').length }
   })
 
@@ -88,7 +88,7 @@ export default function Stats() {
                 {lateEmps.length===0
                   ? <T size={13} c={W.done}>Không ai đang trễ 🎉</T>
                   : lateEmps.map((emp,i) => {
-                    const lateCnt = TASKS.filter(t=>{const s=subs.find(s=>s.employee_id===emp.id&&s.task_id===t.id);return !s&&new Date()>new Date(t.deadline)}).length
+                    const lateCnt = TASKS.filter(t=>{const s=subs.find(s=>s.employee_id===emp.id&&s.task_id===t.id);return !s&&new Date()>new Date(calcDeadline(t, emp.start_date))}).length
                     return (
                       <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0',
                         borderTop:i?`1px solid ${W.line2}`:'none' }}>

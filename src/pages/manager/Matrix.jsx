@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
-import { TASKS } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 
 const TASK_IDS = TASKS.map(t => t.id)
 
-function cellStatus(empId, taskId, subs) {
+function cellStatus(empId, taskId, subs, startDate) {
   const sub = subs.find(s => s.employee_id === empId && s.task_id === taskId)
   if (!sub) {
     const task = TASKS.find(t => t.id === taskId)
-    return task && new Date() > new Date(task.deadline) ? 'late-miss' : 'empty'
+    return task && new Date() > new Date(calcDeadline(task, startDate)) ? 'late-miss' : 'empty'
   }
   return sub.status === 'graded' ? 'done' : sub.status === 'pending' ? 'review' : sub.status === 'revision' ? 'revision' : 'empty'
 }
@@ -45,7 +45,7 @@ export default function Matrix() {
   }, [])
 
   const rows = employees.map(emp => {
-    const cells   = TASK_IDS.map(tid => cellStatus(emp.id, tid, subs))
+    const cells   = TASK_IDS.map(tid => cellStatus(emp.id, tid, subs, emp.start_date))
     const done    = cells.filter(c=>c==='done').length
     const pct     = Math.round((done/TASK_IDS.length)*100)
     const hasLate = cells.some(c=>c==='late-miss')

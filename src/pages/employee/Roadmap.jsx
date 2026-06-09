@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Bar, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, WEEKS } from '../../data'
+import { TASKS, WEEKS, calcDeadline } from '../../data'
 
-function taskStatus(sub, task) {
-  if (!sub) return new Date() > new Date(task.deadline) ? 'late' : 'todo'
+function taskStatus(sub, task, startDate) {
+  if (!sub) return new Date() > new Date(calcDeadline(task, startDate)) ? 'late' : 'todo'
   if (sub.status === 'graded') return 'done'
   if (sub.status === 'pending') return 'review'
   return 'todo'
@@ -91,7 +91,7 @@ export default function Roadmap() {
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                     {w.taskIds.map(tid => {
                       const task = TASKS.find(t => t.id === tid)
-                      const st   = taskStatus(getSub(tid), task)
+                      const st   = taskStatus(getSub(tid), task, currentUser?.start_date)
                       return <TaskPill key={tid} task={task} st={st} to={`/emp/task/${tid}`} />
                     })}
                   </div>
@@ -104,7 +104,7 @@ export default function Roadmap() {
         {/* Final */}
         {(() => {
           const ft = TASKS.find(t => t.final)
-          const st = taskStatus(getSub('F'), ft)
+          const st = taskStatus(getSub('F'), ft, currentUser?.start_date)
           return (
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>

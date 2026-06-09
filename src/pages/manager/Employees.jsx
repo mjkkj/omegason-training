@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
-import { TASKS } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 
 export default function Employees() {
   const [employees, setEmployees] = useState([])
@@ -22,7 +22,7 @@ export default function Employees() {
     const graded  = ms.filter(s => s.status === 'graded')
     const pending = ms.filter(s => s.status === 'pending')
     const pct     = Math.round((graded.length / TASKS.length) * 100)
-    const hasLate = TASKS.some(t => { const sub=ms.find(s=>s.task_id===t.id); return !sub&&now>new Date(t.deadline) })
+    const hasLate = TASKS.some(t => { const sub=ms.find(s=>s.task_id===t.id); return !sub&&now>new Date(calcDeadline(t, emp.start_date)) })
     const avg     = graded.length ? Math.round((graded.reduce((s,x)=>s+(x.grade||0),0)/graded.length)*10)/10 : null
     return { ...emp, pct, hasLate, pending: pending.length, graded: graded.length, avg }
   }).sort((a,b)=>b.pct-a.pct)
