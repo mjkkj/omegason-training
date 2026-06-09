@@ -3,13 +3,26 @@ import { supabase } from './supabase'
 
 // Fetch profile; if missing (account pre-dates trigger), create it automatically.
 async function ensureProfile(user) {
-  const { data: existing } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  const { data: existing, error: fetchErr } = await supabase
+    .from('profiles').select('*').eq('id', user.id).single()
   if (existing) return existing
+  if (fetchErr && fetchErr.code !== 'PGRST116') {
+    // PGRST116 = no rows found, which is expected; anything else is a real error
+    console.error('[ensureProfile] fetch error:', fetchErr)
+    return null
+  }
 
   const name     = user.user_metadata?.name || user.email.split('@')[0]
   const initials = deriveInitials(name)
-  await supabase.from('profiles').insert({ id: user.id, name, initials, role: 'employee' })
-  const { data: created } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  const { error: insertErr } = await supabase
+    .from('profiles').insert({ id: user.id, name, initials, role: 'employee' })
+  if (insertErr) {
+    console.error('[ensureProfile] insert error:', insertErr)
+    return null
+  }
+
+  const { data: created } = await supabase
+    .from('profiles').select('*').eq('id', user.id).single()
   return created || null
 }
 
@@ -41,8 +54,15 @@ export const useStore = create((set, get) => ({
   },
 
   login: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+
+    // Eagerly load profile right after sign-in (don't wait for onAuthStateChange)
+    if (data.user) {
+      const profile = await ensureProfile(data.user)
+      if (!profile) throw new Error('Đăng nhập OK nhưng không tải được hồ sơ. Vui lòng kiểm tra bảng "profiles" trong Supabase có tồn tại chưa.')
+      set({ currentUser: { ...profile, email: data.user.email } })
+    }
   },
 
   signup: async (email, password, name) => {

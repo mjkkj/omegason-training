@@ -29,13 +29,7 @@ export default function Login() {
     try {
       if (mode === 'login') {
         await login(email, password)
-        // Redirect handled by useEffect; give it 3s then show hint
-        setTimeout(() => {
-          if (!useStore.getState().currentUser) {
-            setError('Đăng nhập xong nhưng không tải được hồ sơ. Thử làm mới trang (F5).')
-            setLoading(false)
-          }
-        }, 3000)
+        // currentUser is set inside login(); useEffect will redirect
         return
       } else {
         if (!name.trim()) throw new Error('Vui lòng nhập họ tên')
