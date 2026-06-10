@@ -82,6 +82,8 @@ export default function TaskDetail() {
 
         {/* body */}
         <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'20px 28px', display:'flex', flexDirection:'column', gap:20 }}>
+
+          {/* CẦN HỌC */}
           <div>
             <H size={14} mb={10} c={W.ink2}>CẦN HỌC</H>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
@@ -89,6 +91,17 @@ export default function TaskDetail() {
             </div>
           </div>
 
+          {/* GHI CHÚ */}
+          {content.note && (
+            <Card pad={12} fill={W.warnSoft} line="transparent">
+              <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                <Ico name="bell" s={15} c={W.warn} />
+                <T size={13} c={W.ink} style={{ lineHeight:1.5 }}>{content.note}</T>
+              </div>
+            </Card>
+          )}
+
+          {/* VIDEO GỢI Ý — real URLs from manager */}
           {taskVideos !== null && taskVideos.length > 0 && (
             <div>
               <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
@@ -130,14 +143,45 @@ export default function TaskDetail() {
             </div>
           )}
 
+          {/* VIDEO GỢI Ý — tên video khi chưa có URL */}
+          {taskVideos !== null && taskVideos.length === 0 && content.videos?.length > 0 && (
+            <div>
+              <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
+              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                {content.videos.map((v, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10,
+                    padding:'10px 14px', borderRadius:8, border:`1px solid ${W.line2}`, background:'#fff' }}>
+                    <Ico name="play" s={14} c={W.ink4} />
+                    <T size={13} c={W.ink2}>{v}</T>
+                  </div>
+                ))}
+              </div>
+              <T size={11} c={W.ink4} style={{ marginTop:8 }}>Quản lý sẽ thêm link video thực tế trong thời gian tới.</T>
+            </div>
+          )}
+
+          {/* PROMPT MẪU — chỉ task có sẵn prompt */}
+          {content.prompt && (
+            <div>
+              <H size={14} mb={10} c={W.ink2}>PROMPT MẪU — DÙNG NGAY VỚI CHATGPT</H>
+              <Card pad={14} fill={W.panel} line={W.line2}>
+                <T size={11} mono c={W.ink3} mb={8}>DÁN VÀO CHATGPT ĐỂ TẠO CHECKLIST</T>
+                <div style={{ fontFamily: W.mono, fontSize:12.5, color:W.ink, lineHeight:1.7,
+                  background:'#fff', borderRadius:6, padding:'12px 14px', border:`1px solid ${W.line2}`,
+                  whiteSpace:'pre-wrap' }}>{content.prompt}</div>
+              </Card>
+            </div>
+          )}
+
+          {/* ĐẦU RA CẦN NỘP */}
           <div>
             <H size={14} mb={10} c={W.ink2}>ĐẦU RA CẦN NỘP</H>
-            <Card pad={14} style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <Ico name="doc" s={20} c={W.acc} />
-              <div style={{ flex:1 }}>
+            <Card pad={16}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+                <Ico name="doc" s={20} c={W.acc} />
                 <div style={{ fontSize:13.5, fontWeight:700, fontFamily: W.mono }}>{task.file}</div>
-                <T size={12} style={{ marginTop:4 }}>{content.description}</T>
               </div>
+              <T size={13} c={W.ink2} style={{ lineHeight:1.7 }}>{content.description}</T>
             </Card>
           </div>
 
