@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, calcDeadline } from '../../data'
+import { TASKS, WEEKS, calcDeadline } from '../../data'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -33,10 +33,11 @@ export default function Progress() {
     return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, currentUser?.start_date))
   }).length
 
-  const weeks = [1,2,3,4].map(w => {
+  const weeks = WEEKS.map((wk, i) => {
+    const w  = i + 1
     const wt = TASKS.filter(t => t.week === w)
     const wd = wt.filter(t => graded.find(s => s.task_id === t.id)).length
-    return { w, pct: Math.round((wd/wt.length)*100), done: wd, total: wt.length }
+    return { w, label: wk.wk, pct: wt.length ? Math.round((wd/wt.length)*100) : 0, done: wd, total: wt.length }
   })
 
   return (
@@ -61,12 +62,12 @@ export default function Progress() {
               </div>
             </Card>
             <Card pad={16}>
-              <T size={11} mono c={W.ink3} mb={12}>TIẾN ĐỘ THEO TUẦN</T>
+              <T size={11} mono c={W.ink3} mb={12}>TIẾN ĐỘ THEO GIAI ĐOẠN</T>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {weeks.map(({w,pct,done,total:wt}) => (
+                {weeks.map(({w,label,pct,done,total:wt}) => (
                   <div key={w}>
                     <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
-                      <span style={{ fontSize:12, fontWeight:600 }}>Tuần {w}</span>
+                      <span style={{ fontSize:12, fontWeight:600 }}>{label}</span>
                       <span style={{ fontSize:11, color: W.ink3, fontFamily: W.mono }}>{done}/{wt}</span>
                     </div>
                     <Bar pct={pct} h={6} c={pct===100 ? W.done : W.acc} />

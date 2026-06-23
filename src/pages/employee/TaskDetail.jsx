@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Ico, Ph, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
-import { TASKS, TASK_CONTENT, calcDeadline } from '../../data'
+import { TASKS, TASK_CONTENT, calcDeadline, moduleLabel } from '../../data'
 
 function getYtId(url) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -52,8 +52,8 @@ export default function TaskDetail() {
   const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
 
   return (
-    <Shell role="emp" title={`Task ${task.id} · ${task.name}`}
-      sub={task.final ? 'Final project' : `Tuần ${task.week}`}
+    <Shell role="emp" title={`${moduleLabel(task)} · ${task.name}`}
+      sub={task.final ? 'Capstone — dự án tổng kết' : 'Full-Stack Marketer'}
       pad={0} body={W.paper}
       actions={<Btn kind="ghost" size="sm" onClick={() => navigate('/emp/roadmap')}>← Lộ trình</Btn>}>
 
@@ -68,7 +68,8 @@ export default function TaskDetail() {
             <H size={20} mb={6}>{task.name}</H>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               <Tag tone={stTone}>{stTxt}</Tag>
-              <Tag tone="line">{task.final ? 'Final' : `Tuần ${task.week}`}</Tag>
+              <Tag tone="line">{moduleLabel(task)}</Tag>
+              {task.key && <Tag tone="warn">Module trọng tâm</Tag>}
               <Tag tone="line">~{task.hours} giờ</Tag>
             </div>
           </div>
@@ -83,9 +84,9 @@ export default function TaskDetail() {
         {/* body */}
         <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'20px 28px', display:'flex', flexDirection:'column', gap:20 }}>
 
-          {/* CẦN HỌC */}
+          {/* CẦN NẮM */}
           <div>
-            <H size={14} mb={10} c={W.ink2}>CẦN HỌC</H>
+            <H size={14} mb={10} c={W.ink2}>CẦN NẮM</H>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
               {(content.learn || []).map((l, i) => <Tag key={i} tone="line">{l}</Tag>)}
             </div>
@@ -99,6 +100,29 @@ export default function TaskDetail() {
                 <T size={13} c={W.ink} style={{ lineHeight:1.5 }}>{content.note}</T>
               </div>
             </Card>
+          )}
+
+          {/* BÀI THỰC HÀNH */}
+          {content.exercises?.length > 0 && (
+            <div>
+              <H size={14} mb={10} c={W.ink2}>BÀI THỰC HÀNH</H>
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                {content.exercises.map((ex, i) => (
+                  <Card key={i} pad={14} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
+                    <div style={{ width:26, height:26, borderRadius:7, flexShrink:0, background: W.ink, color:'#fff',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:12, fontWeight:800, fontFamily: W.mono }}>{i+1}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginBottom:4 }}>
+                        <span style={{ fontSize:10.5, fontWeight:700, color: W.acc, fontFamily: W.mono }}>{ex.code}</span>
+                        <span style={{ fontSize:13.5, fontWeight:700, color: W.ink }}>{ex.title}</span>
+                      </div>
+                      <T size={12.5} c={W.ink2} style={{ lineHeight:1.6 }}>{ex.desc}</T>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* VIDEO GỢI Ý — real URLs from manager */}
@@ -169,6 +193,40 @@ export default function TaskDetail() {
                 <div style={{ fontFamily: W.mono, fontSize:12.5, color:W.ink, lineHeight:1.7,
                   background:'#fff', borderRadius:6, padding:'12px 14px', border:`1px solid ${W.line2}`,
                   whiteSpace:'pre-wrap' }}>{content.prompt}</div>
+              </Card>
+            </div>
+          )}
+
+          {/* TIÊU CHUẨN ĐẠT */}
+          {content.pass?.length > 0 && (
+            <div>
+              <H size={14} mb={10} c={W.ink2}>TIÊU CHUẨN ĐẠT</H>
+              <Card pad={14} fill={W.doneSoft} line="transparent">
+                <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
+                  {content.pass.map((p, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:9 }}>
+                      <Ico name="check" s={15} c={W.done} />
+                      <T size={12.5} c={W.ink} style={{ lineHeight:1.5 }}>{p}</T>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* BẪY THƯỜNG GẶP */}
+          {content.traps?.length > 0 && (
+            <div>
+              <H size={14} mb={10} c={W.ink2}>BẪY THƯỜNG GẶP</H>
+              <Card pad={14} fill={W.lateSoft} line="transparent">
+                <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
+                  {content.traps.map((t, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:9 }}>
+                      <Ico name="flag" s={15} c={W.late} />
+                      <T size={12.5} c={W.ink} style={{ lineHeight:1.5 }}>{t}</T>
+                    </div>
+                  ))}
+                </div>
               </Card>
             </div>
           )}

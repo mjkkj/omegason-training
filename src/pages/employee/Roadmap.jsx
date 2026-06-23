@@ -29,7 +29,7 @@ function TaskPill({ task, st, to }) {
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{task.file}</div>
         </div>
         {task.key   && <Tag tone="warn">KEY</Tag>}
-        {task.final && <Tag tone="acc">FINAL</Tag>}
+        {task.final && <Tag tone="acc">CAPSTONE</Tag>}
         {st === 'done'   && <Dot tone="done" />}
         {st === 'review' && <Dot tone="warn" />}
         {st === 'late'   && <Dot tone="late" />}
@@ -54,7 +54,7 @@ export default function Roadmap() {
   const overallPct = Math.round((doneCount / TASKS.length) * 100)
 
   return (
-    <Shell role="emp" title="Lộ trình 4 tuần · 10 task" sub="Mỗi tuần một output thật — kết thúc bằng final project"
+    <Shell role="emp" title="Lộ trình 8 module + Capstone" sub="Một sản phẩm, kéo tới cùng — mỗi module một output thật"
       actions={
         <>
           <Tag tone="acc">Tiến độ {overallPct}%</Tag>
@@ -108,7 +108,7 @@ export default function Roadmap() {
           return (
             <div>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                <H size={13} c={W.ink2}>Final Project</H>
+                <H size={13} c={W.ink2}>Capstone — Dự án end-to-end</H>
                 <div style={{ flex:1, height:1, background: W.line2 }} />
               </div>
               <TaskPill task={ft} st={st} to="/emp/task/F" />

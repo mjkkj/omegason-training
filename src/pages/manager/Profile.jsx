@@ -104,7 +104,7 @@ export default function Profile() {
                   <div style={{ fontSize:13.5, fontWeight:600, display:'flex', alignItems:'center', gap:6 }}>
                     {task.name}
                     {task.key   && <Tag tone="warn" style={{ fontSize:10 }}>KEY</Tag>}
-                    {task.final && <Tag tone="acc"  style={{ fontSize:10 }}>FINAL</Tag>}
+                    {task.final && <Tag tone="acc"  style={{ fontSize:10 }}>CAPSTONE</Tag>}
                   </div>
                   <div style={{ fontSize:10.5, color: W.ink4, marginTop:2, fontFamily: W.mono }}>
                     {sub ? `${sub.file_name} · nộp ${fmtDate(sub.submitted_at)}` : 'chưa nộp'}

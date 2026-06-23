@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, calcDeadline } from '../../data'
+import { TASKS, WEEKS, calcDeadline } from '../../data'
 
 function daysLeftLabel(deadline, sub) {
   if (sub?.status === 'graded')  return sub.grade != null ? `${sub.grade}đ` : 'Đã nộp'
@@ -50,7 +50,7 @@ export default function Schedule() {
   const groups = []
   const weekMap = {}
   upcoming.forEach(t => {
-    const key = t.final ? 'Final project' : `Tuần ${t.week}`
+    const key = t.final ? 'Capstone' : (WEEKS[t.week - 1]?.wk || `Giai đoạn ${t.week}`)
     if (!weekMap[key]) weekMap[key] = []
     weekMap[key].push(t)
   })
@@ -62,7 +62,7 @@ export default function Schedule() {
   if (overdue.length)   groups.push({ label:'Trễ deadline',  tasks: overdue,   overdue:true })
 
   return (
-    <Shell role="emp" title="Lịch nộp theo tuần" sub="Hạn nộp từng task · gần nhất ở trên"
+    <Shell role="emp" title="Lịch nộp theo module" sub="Hạn nộp từng module · gần nhất ở trên"
       actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>Lộ trình</Btn></Link>}>
 
       <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
@@ -100,7 +100,7 @@ export default function Schedule() {
                       <div style={{ fontSize:13.5, fontWeight:600, display:'flex', alignItems:'center', gap:7 }}>
                         {task.name}
                         {task.key   && <Tag tone="warn" style={{ fontSize:10 }}>KEY</Tag>}
-                        {task.final && <Tag tone="acc"  style={{ fontSize:10 }}>FINAL</Tag>}
+                        {task.final && <Tag tone="acc"  style={{ fontSize:10 }}>CAPSTONE</Tag>}
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
                         <Ico name="clock" s={12} c={W.ink3} />

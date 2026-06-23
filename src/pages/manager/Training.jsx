@@ -41,7 +41,7 @@ export default function Training() {
   }
 
   const task = TASKS.find(t => t.id === selected)
-  const allWeeks = [...WEEKS, { wk: 'Final', taskIds: ['F'] }]
+  const allWeeks = [...WEEKS, { wk: 'Capstone', taskIds: ['F'] }]
 
   return (
     <Shell role="mgr" title="Nội dung đào tạo" sub="Thêm video gợi ý cho từng task — nhân viên sẽ thấy ngay">

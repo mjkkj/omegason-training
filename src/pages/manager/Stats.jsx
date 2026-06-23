@@ -33,9 +33,9 @@ export default function Stats() {
   const weekBars = WEEKS.map(w => {
     const possible = employees.length * w.taskIds.length
     const done = subs.filter(s=>w.taskIds.includes(s.task_id)&&s.status==='graded').length
-    return { label: w.wk, pct: possible ? Math.round((done/possible)*100) : 0 }
+    return { label: w.short, pct: possible ? Math.round((done/possible)*100) : 0 }
   })
-  weekBars.push({ label:'Final', pct: employees.length
+  weekBars.push({ label:'Capstone', pct: employees.length
     ? Math.round((subs.filter(s=>s.task_id==='F'&&s.status==='graded').length/employees.length)*100) : 0 })
 
   const lateEmps = empData.filter(e=>e.hasLate)
@@ -61,8 +61,8 @@ export default function Stats() {
 
           <div style={{ display:'flex', gap:14 }}>
             <Card pad={18} style={{ flex:1 }}>
-              <H size={14} mb={4}>Tỉ lệ hoàn thành theo tuần</H>
-              <T size={11.5} mb={16} c={W.ink3}>% task đã chấm / tổng yêu cầu cả đội</T>
+              <H size={14} mb={4}>Tỉ lệ hoàn thành theo giai đoạn</H>
+              <T size={11.5} mb={16} c={W.ink3}>% module đã chấm / tổng yêu cầu cả đội</T>
               <div style={{ display:'flex', alignItems:'flex-end', gap:16, height:160 }}>
                 {weekBars.map(({label,pct},i) => (
                   <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, height:'100%' }}>

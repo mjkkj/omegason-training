@@ -76,7 +76,7 @@ export default function Matrix() {
               <div style={{ flex:1, display:'flex', gap:4 }}>
                 {TASK_IDS.map(t => (
                   <div key={t} style={{ width:26, textAlign:'center', fontSize:10.5, fontWeight:700, flexShrink:0,
-                    color: t==='F'?W.acc:t==='10'?W.warn:W.ink3, fontFamily: W.mono }}>{t}</div>
+                    color: t==='F'?W.acc:(t==='04'||t==='08')?W.warn:W.ink3, fontFamily: W.mono }}>{t}</div>
                 ))}
               </div>
               <div style={{ width:100, textAlign:'right', fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>TIẾN ĐỘ</div>

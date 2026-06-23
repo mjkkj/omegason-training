@@ -95,7 +95,7 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
                 {currentUser?.name || (role === 'emp' ? 'Nhân viên' : 'Quản lý')}
               </div>
               <div style={{ fontSize:10.5, color: W.ink3, fontFamily: W.font }}>
-                {role === 'emp' ? 'NV mới · Tuần 2' : 'Quản lý đào tạo'}
+                {role === 'emp' ? 'Full-Stack Marketer' : 'Quản lý đào tạo'}
               </div>
             </div>
             <div role="button" onClick={handleLogout} title="Đăng xuất"
