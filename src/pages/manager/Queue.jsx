@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Check, Field, Ico, Avatar } from '../../design-system'
 import { fetchAllSubmissions, gradeSubmission } from '../../store'
-import { TASKS } from '../../data'
+import SubmissionView from '../../components/SubmissionView'
+import { TASKS, moduleLabel } from '../../data'
 
 function timeAgo(iso) {
   const d = Math.floor((new Date() - new Date(iso)) / 60000)
@@ -92,7 +93,7 @@ export default function Queue() {
                       <div style={{ fontSize:12.5, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis',
                         whiteSpace:'nowrap' }}>{e?.name || 'Nhân viên'}</div>
                       <div style={{ fontSize:10.5, color: W.ink3 }}>
-                        Task {q.task_id} · {timeAgo(q.submitted_at)}
+                        {moduleLabel(TASKS.find(t => t.id === q.task_id))} · {timeAgo(q.submitted_at)}
                       </div>
                     </div>
                   </Card>
@@ -109,26 +110,13 @@ export default function Queue() {
                   background: W.panel, display:'flex', alignItems:'center', gap:10 }}>
                   <Avatar s={26} txt={emp?.initials || '?'} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700 }}>{emp?.name} · Task {selected.task_id}</div>
+                    <div style={{ fontSize:13, fontWeight:700 }}>{emp?.name} · {moduleLabel(task)}</div>
                     <div style={{ fontSize:10, color: W.ink4, fontFamily: W.mono }}>{selected.file_name}</div>
                   </div>
                   <T size={11.5} c={W.ink3}>{timeAgo(selected.submitted_at)}</T>
                 </div>
                 <div style={{ flex:1, minHeight:0 }}>
-                  {selected.file_content ? (
-                    <iframe srcDoc={selected.file_content} sandbox="allow-same-origin"
-                      style={{ width:'100%', height:'100%', border:'none', display:'block' }} />
-                  ) : (
-                    <div style={{ padding:24 }}>
-                      <T size={13.5} weight={700} mono mb={8}>{task?.name}</T>
-                      {selected.note && (
-                        <Card pad={12} fill={W.accSoft} line="transparent">
-                          <T size={11} mono c={W.acc} mb={4}>GHI CHÚ TỪ NV</T>
-                          <T size={12.5}>{selected.note}</T>
-                        </Card>
-                      )}
-                    </div>
-                  )}
+                  <SubmissionView sub={selected} pad={20} />
                 </div>
               </Card>
 

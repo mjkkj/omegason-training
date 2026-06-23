@@ -12,15 +12,15 @@ export const WEEKS = [
 // Mỗi module = 1 task nộp bài. id '01'..'08' = Module 1..8, 'F' = Capstone (Module 9).
 // week = giai đoạn (1..4), dùng để gom nhóm hiển thị.
 export const TASKS = [
-  { id: '01', name: 'Tìm ngách & nghiên cứu sản phẩm',        week: 1, daysFromStart:  6, file: 'module-1-research.html',           hours: 5 },
-  { id: '02', name: 'Dựng store Shopify',                     week: 2, daysFromStart: 12, file: 'module-2-store.html',              hours: 6 },
-  { id: '03', name: 'Đưa sản phẩm về store',                  week: 2, daysFromStart: 16, file: 'module-3-listing.html',           hours: 4 },
-  { id: '04', name: 'Creative — nội dung quảng cáo',          week: 3, daysFromStart: 22, file: 'module-4-creative.html',          hours: 6, key: true },
-  { id: '05', name: 'Set-up chiến dịch Facebook Ads',         week: 3, daysFromStart: 27, file: 'module-5-campaign.html',          hours: 4 },
-  { id: '06', name: 'Đọc chỉ số Facebook Ads',                week: 4, daysFromStart: 32, file: 'module-6-fb-metrics.html',        hours: 4 },
-  { id: '07', name: 'Phân tích trên Shopify',                 week: 4, daysFromStart: 36, file: 'module-7-shopify-analytics.html', hours: 4 },
-  { id: '08', name: 'Tối ưu quảng cáo (vòng lặp)',            week: 4, daysFromStart: 40, file: 'module-8-optimize.html',          hours: 5, key: true },
-  { id: 'F',  name: 'Capstone — Dự án end-to-end',            week: 5, daysFromStart: 49, file: 'capstone-project.html',           hours: 12, final: true },
+  { id: '01', name: 'Tìm ngách & nghiên cứu sản phẩm',        week: 1, daysFromStart:  6, file: 'Project Log + bảng scorecard + ảnh chụp Ad Library', hours: 5 },
+  { id: '02', name: 'Dựng store Shopify',                     week: 2, daysFromStart: 12, file: 'Link store + ảnh chụp Events Manager + test order', hours: 6 },
+  { id: '03', name: 'Đưa sản phẩm về store',                  week: 2, daysFromStart: 16, file: 'Link sản phẩm + sheet giá/biên + ảnh', hours: 4 },
+  { id: '04', name: 'Creative — nội dung quảng cáo',          week: 3, daysFromStart: 22, file: 'Bộ creative (ảnh/video) + hook bank + bảng audit', hours: 6, key: true },
+  { id: '05', name: 'Set-up chiến dịch Facebook Ads',         week: 3, daysFromStart: 27, file: 'Ảnh cấu trúc campaign + kế hoạch ngân sách', hours: 4 },
+  { id: '06', name: 'Đọc chỉ số Facebook Ads',                week: 4, daysFromStart: 32, file: 'Bảng phễu chỉ số + phần chẩn đoán + ảnh', hours: 4 },
+  { id: '07', name: 'Phân tích trên Shopify',                 week: 4, daysFromStart: 36, file: 'Funnel store + tính MER + ảnh heatmap', hours: 4 },
+  { id: '08', name: 'Tối ưu quảng cáo (vòng lặp)',            week: 4, daysFromStart: 40, file: 'Memo kill/scale + lịch creative', hours: 5, key: true },
+  { id: 'F',  name: 'Capstone — Dự án end-to-end',            week: 5, daysFromStart: 49, file: 'Project Log đầy đủ + slide/clip trình bày 10 phút', hours: 12, final: true },
 ];
 
 // Nhãn module hiển thị: '01'..'08' -> "Module 1".."Module 8", 'F' -> "Capstone".

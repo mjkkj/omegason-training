@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Ico, Ph, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
+import SubmissionView from '../../components/SubmissionView'
 import { TASKS, TASK_CONTENT, calcDeadline, moduleLabel } from '../../data'
 
 function getYtId(url) {
@@ -235,11 +236,17 @@ export default function TaskDetail() {
           <div>
             <H size={14} mb={10} c={W.ink2}>ĐẦU RA CẦN NỘP</H>
             <Card pad={16}>
-              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
-                <Ico name="doc" s={20} c={W.acc} />
-                <div style={{ fontSize:13.5, fontWeight:700, fontFamily: W.mono }}>{task.file}</div>
+              <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
+                <Ico name="doc" s={18} c={W.acc} />
+                <div style={{ flex:1 }}>
+                  <T size={10.5} mono c={W.ink3} mb={3}>ĐỊNH DẠNG GỢI Ý</T>
+                  <div style={{ fontSize:13.5, fontWeight:700, color:W.ink }}>{task.file}</div>
+                </div>
               </div>
               <T size={13} c={W.ink2} style={{ lineHeight:1.7 }}>{content.description}</T>
+              <T size={11.5} c={W.ink4} style={{ marginTop:10, lineHeight:1.5 }}>
+                Nộp linh hoạt theo định dạng phù hợp: văn bản viết trực tiếp, ảnh chụp, tệp đính kèm (PDF/video/.html…) hoặc link.
+              </T>
             </Card>
           </div>
 
@@ -262,6 +269,10 @@ export default function TaskDetail() {
                     <div style={{ fontSize:22, fontWeight:800, color: W.done }}>{sub.grade}</div>
                   )}
                 </div>
+                <div style={{ marginTop:12, border:`1px solid rgba(0,0,0,.08)`, borderRadius:8,
+                  overflow:'hidden', height:340, background:'#fff' }}>
+                  <SubmissionView sub={sub} pad={14} />
+                </div>
                 {sub.feedback && (
                   <div style={{ marginTop:12, paddingTop:12, borderTop:`1px solid rgba(0,0,0,.08)` }}>
                     <T size={11} mono c={W.ink3} mb={4}>NHẬN XÉT</T>
@@ -279,7 +290,7 @@ export default function TaskDetail() {
           {sub?.status === 'pending' && <Tag tone="warn">Đang chờ chấm</Tag>}
           <Link to={`/emp/submit/${id}`}>
             <Btn kind="solid" size="md" icon={<Ico name="up" s={15} c="#fff"/>}>
-              {sub ? 'Nộp lại báo cáo' : 'Nộp báo cáo HTML'}
+              {sub ? 'Sửa / nộp lại' : 'Nộp báo cáo'}
             </Btn>
           </Link>
         </div>
