@@ -108,9 +108,15 @@ export async function fetchAllUsers() {
 }
 
 // Promote / demote a user. role must be 'manager' or 'employee'.
+// Returns the updated row. Throws if RLS blocked it (0 rows changed).
 export async function updateUserRole(userId, role) {
-  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+  const { data, error } = await supabase
+    .from('profiles').update({ role }).eq('id', userId).select()
   if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('RLS_BLOCKED')
+  }
+  return data[0]
 }
 
 export async function upsertSubmission({ employeeId, taskId, fileName, fileContent, fileSize, note }) {

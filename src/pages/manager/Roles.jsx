@@ -20,10 +20,15 @@ export default function Roles() {
     setBusyId(user.id)
     try {
       await updateUserRole(user.id, role)
-      setUsers(us => us.map(u => u.id === user.id ? { ...u, role } : u))
+      // Reload từ DB để chắc chắn thay đổi đã ghi (không cập nhật "lạc quan").
+      await load()
       setConfirmId(null)
     } catch (e) {
-      setErr(`Không đổi được quyền: ${e.message || e}. Có thể do RLS của Supabase chặn cập nhật hồ sơ người khác.`)
+      if (e.message === 'RLS_BLOCKED') {
+        setErr('Cập nhật bị Supabase RLS chặn (0 dòng thay đổi). Hãy mở Supabase → SQL Editor và chạy file "supabase-roles.sql" trong repo để thêm policy cho phép quản lý đổi quyền, rồi thử lại.')
+      } else {
+        setErr(`Không đổi được quyền: ${e.message || e}`)
+      }
     } finally {
       setBusyId(null)
     }
