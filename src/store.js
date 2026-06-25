@@ -100,6 +100,19 @@ export async function fetchAllProfiles() {
   return data || []
 }
 
+// All users (employees + managers) — for the role-management screen.
+export async function fetchAllUsers() {
+  const { data, error } = await supabase.from('profiles').select('*').order('role').order('name')
+  if (error) throw error
+  return data || []
+}
+
+// Promote / demote a user. role must be 'manager' or 'employee'.
+export async function updateUserRole(userId, role) {
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId)
+  if (error) throw error
+}
+
 export async function upsertSubmission({ employeeId, taskId, fileName, fileContent, fileSize, note }) {
   const { error } = await supabase.from('submissions').upsert({
     employee_id: employeeId,

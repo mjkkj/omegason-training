@@ -232,6 +232,7 @@ export function Ico({ name, s = 16, c = 'currentColor', sw = 1.6 }) {
     link:   <><path d="M6.5 9.5a2.5 2.5 0 003.5 0l2-2a2.5 2.5 0 00-3.5-3.5l-1 1"/><path d="M9.5 6.5a2.5 2.5 0 00-3.5 0l-2 2a2.5 2.5 0 003.5 3.5l1-1"/></>,
     image:  <><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.1"/><path d="M3 11.5l3-2.5 2.5 2 2-1.5 2.5 2.5"/></>,
     text:   <><path d="M3.5 4h9M3.5 7h9M3.5 10h6"/></>,
+    shield: <><path d="M8 2l4.5 1.8v3.7c0 3-2 5.2-4.5 6.2-2.5-1-4.5-3.2-4.5-6.2V3.8z"/><path d="M6 8l1.5 1.5L10.5 6.5"/></>,
   };
   return <svg {...p}>{paths[name] || paths.doc}</svg>;
 }

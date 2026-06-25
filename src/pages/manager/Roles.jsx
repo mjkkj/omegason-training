@@ -1,0 +1,135 @@
+import { useState, useEffect } from 'react'
+import Shell from '../../components/Shell'
+import { W, Card, H, T, Btn, Tag, Stat, Ico, Avatar, Skel } from '../../design-system'
+import { fetchAllUsers, updateUserRole, useStore } from '../../store'
+
+export default function Roles() {
+  const { currentUser } = useStore()
+  const [users, setUsers]     = useState([])
+  const [loading, setLoading] = useState(true)
+  const [q, setQ]             = useState('')
+  const [busyId, setBusyId]   = useState(null)   // id đang xử lý
+  const [confirmId, setConfirmId] = useState(null) // id đang chờ xác nhận
+  const [err, setErr]         = useState('')
+
+  const load = () => fetchAllUsers().then(d => { setUsers(d); setLoading(false) })
+  useEffect(() => { load() }, [])
+
+  const changeRole = async (user, role) => {
+    setErr('')
+    setBusyId(user.id)
+    try {
+      await updateUserRole(user.id, role)
+      setUsers(us => us.map(u => u.id === user.id ? { ...u, role } : u))
+      setConfirmId(null)
+    } catch (e) {
+      setErr(`Không đổi được quyền: ${e.message || e}. Có thể do RLS của Supabase chặn cập nhật hồ sơ người khác.`)
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const managers = users.filter(u => u.role === 'manager')
+  const employees = users.filter(u => u.role !== 'manager')
+
+  const term = q.trim().toLowerCase()
+  const rows = users.filter(u =>
+    !term || (u.name || '').toLowerCase().includes(term) || (u.email || '').toLowerCase().includes(term)
+  )
+
+  return (
+    <Shell role="mgr" title="Phân quyền" sub="Nâng cấp tài khoản đã đăng ký lên quản lý hoặc hạ về nhân viên">
+      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        <div style={{ display:'flex', gap:12 }}>
+          <Stat n={users.length}      label="Tổng tài khoản" />
+          <Stat n={managers.length}   label="Quản lý"   tone={W.acc} />
+          <Stat n={employees.length}  label="Nhân viên" tone={W.done} />
+        </div>
+
+        {err && (
+          <Card pad={12} fill={W.lateSoft} line="transparent">
+            <T size={12.5} c={W.late}>{err}</T>
+          </Card>
+        )}
+
+        <Card pad={12} style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <Ico name="search" s={15} c={W.ink3} />
+          <input value={q} onChange={e => setQ(e.target.value)}
+            placeholder="Tìm theo tên hoặc email…"
+            style={{ flex:1, border:'none', outline:'none', fontSize:13, color: W.ink,
+              fontFamily: W.font, background:'transparent' }} />
+        </Card>
+
+        {loading ? <Skel lines={6} gap={14} /> : (
+          <Card pad={0}>
+            <div style={{ display:'flex', alignItems:'center', padding:'10px 16px', background: W.panel,
+              borderBottom:`1px solid ${W.line2}`, fontSize:10.5, fontWeight:700, color: W.ink3,
+              letterSpacing:0.3, fontFamily: W.mono }}>
+              <div style={{ flex:1 }}>TÀI KHOẢN</div>
+              <div style={{ width:120 }}>QUYỀN HIỆN TẠI</div>
+              <div style={{ width:210, textAlign:'right' }}>THAO TÁC</div>
+            </div>
+
+            {rows.length === 0 && (
+              <div style={{ padding:'40px 16px', textAlign:'center', color: W.ink3 }}>
+                Không tìm thấy tài khoản nào.
+              </div>
+            )}
+
+            {rows.map((u, i) => {
+              const isSelf  = u.id === currentUser?.id
+              const isMgr   = u.role === 'manager'
+              const busy    = busyId === u.id
+              const asking  = confirmId === u.id
+              return (
+                <div key={u.id} style={{ display:'flex', alignItems:'center', padding:'13px 16px',
+                  borderTop: i ? `1px solid ${W.line2}` : 'none', background:'#fff' }}>
+                  <div style={{ flex:1, display:'flex', alignItems:'center', gap:12, minWidth:0 }}>
+                    <Avatar s={36} txt={u.initials || '?'} />
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontSize:13.5, fontWeight:600, display:'flex', alignItems:'center', gap:7 }}>
+                        {u.name || 'Người dùng'}
+                        {isSelf && <Tag tone="line">Bạn</Tag>}
+                      </div>
+                      <div style={{ fontSize:11.5, color: W.ink3, overflow:'hidden',
+                        textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email || '—'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ width:120 }}>
+                    {isMgr ? <Tag tone="acc">Quản lý</Tag> : <Tag tone="done">Nhân viên</Tag>}
+                  </div>
+
+                  <div style={{ width:210, display:'flex', justifyContent:'flex-end', gap:8 }}>
+                    {isSelf ? (
+                      <T size={11.5} c={W.ink4}>Không thể tự đổi quyền</T>
+                    ) : asking ? (
+                      <>
+                        <Btn kind="ghost" size="sm" disabled={busy}
+                          onClick={() => setConfirmId(null)}>Hủy</Btn>
+                        <Btn kind={isMgr ? 'danger' : 'solid'} size="sm" disabled={busy}
+                          onClick={() => changeRole(u, isMgr ? 'employee' : 'manager')}>
+                          {busy ? 'Đang lưu…' : isMgr ? 'Xác nhận hạ quyền' : 'Xác nhận nâng quyền'}
+                        </Btn>
+                      </>
+                    ) : isMgr ? (
+                      <Btn kind="ghost" size="sm" icon={<Ico name="user" s={14} c={W.ink2} />}
+                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Hạ về nhân viên</Btn>
+                    ) : (
+                      <Btn kind="soft" size="sm" icon={<Ico name="shield" s={14} c={W.acc} />}
+                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Nâng lên quản lý</Btn>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </Card>
+        )}
+
+        <T size={11.5} c={W.ink3}>
+          Quản lý có toàn quyền chấm bài, xem tiến độ và quản trị nội dung đào tạo. Hãy cân nhắc khi nâng quyền.
+        </T>
+      </div>
+    </Shell>
+  )
+}

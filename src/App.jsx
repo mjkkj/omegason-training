@@ -14,6 +14,7 @@ import Queue from './pages/manager/Queue'
 import Profile from './pages/manager/Profile'
 import Employees from './pages/manager/Employees'
 import Training from './pages/manager/Training'
+import Roles from './pages/manager/Roles'
 
 function Guard({ role, children }) {
   const { currentUser, initialized } = useStore()
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/mgr/employees"    element={<Guard role="manager"><Employees /></Guard>} />
         <Route path="/mgr/employee/:id" element={<Guard role="manager"><Profile /></Guard>} />
         <Route path="/mgr/training"     element={<Guard role="manager"><Training /></Guard>} />
+        <Route path="/mgr/roles"        element={<Guard role="manager"><Roles /></Guard>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

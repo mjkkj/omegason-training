@@ -14,6 +14,7 @@ const MGR_NAV = [
   { ic:'inbox',  label:'Hàng chờ chấm',  path:'/mgr/queue' },
   { ic:'user',   label:'Nhân viên',      path:'/mgr/employees' },
   { ic:'play',   label:'Nội dung đào tạo', path:'/mgr/training' },
+  { ic:'shield', label:'Phân quyền',     path:'/mgr/roles' },
 ];
 
 function getActiveIdx(nav, pathname) {
