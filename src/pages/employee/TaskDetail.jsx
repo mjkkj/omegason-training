@@ -52,6 +52,13 @@ export default function TaskDetail() {
   const stTone = sub?.status === 'graded' ? 'done' : sub?.status === 'pending' ? 'warn' : sub?.status === 'revision' ? 'late' : dl.tone === 'late' ? 'late' : 'neutral'
   const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
 
+  // Video gợi ý: ưu tiên link quản lý thêm trên Supabase; nếu chưa có thì
+  // dùng bộ video mặc định đã tuyển chọn sẵn trong TASK_CONTENT.
+  const displayVideos = taskVideos === null
+    ? null
+    : (taskVideos.length > 0 ? taskVideos : (content.videos || []))
+
+
   return (
     <Shell role="emp" title={`${moduleLabel(task)} · ${task.name}`}
       sub={task.final ? 'Capstone — dự án tổng kết' : 'Full-Stack Marketer'}
@@ -126,12 +133,12 @@ export default function TaskDetail() {
             </div>
           )}
 
-          {/* VIDEO GỢI Ý — real URLs from manager */}
-          {taskVideos !== null && taskVideos.length > 0 && (
+          {/* VIDEO GỢI Ý */}
+          {displayVideos !== null && displayVideos.length > 0 && (
             <div>
               <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
-                {taskVideos.map((v, i) => {
+                {displayVideos.map((v, i) => {
                   const ytId = getYtId(v.url)
                   return (
                     <a key={i} href={v.url} target="_blank" rel="noopener noreferrer"
@@ -165,23 +172,6 @@ export default function TaskDetail() {
                   )
                 })}
               </div>
-            </div>
-          )}
-
-          {/* VIDEO GỢI Ý — tên video khi chưa có URL */}
-          {taskVideos !== null && taskVideos.length === 0 && content.videos?.length > 0 && (
-            <div>
-              <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
-              <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                {content.videos.map((v, i) => (
-                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10,
-                    padding:'10px 14px', borderRadius:8, border:`1px solid ${W.line2}`, background:'#fff' }}>
-                    <Ico name="play" s={14} c={W.ink4} />
-                    <T size={13} c={W.ink2}>{v}</T>
-                  </div>
-                ))}
-              </div>
-              <T size={11} c={W.ink4} style={{ marginTop:8 }}>Quản lý sẽ thêm link video thực tế trong thời gian tới.</T>
             </div>
           )}
 
