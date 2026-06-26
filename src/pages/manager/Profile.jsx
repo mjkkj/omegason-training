@@ -4,6 +4,8 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
+import { moduleScore, indexByTask, overallScore } from '../../checklist'
+import PhaseBar from '../../components/PhaseBar'
 import { supabase } from '../../supabase'
 
 function fmtDate(iso) {
@@ -40,9 +42,8 @@ export default function Profile() {
   const graded  = subs.filter(s => s.status === 'graded')
   const pending = subs.filter(s => s.status === 'pending')
   const pct     = Math.round((graded.length / TASKS.length) * 100)
-  const avgGrade = graded.length
-    ? Math.round((graded.reduce((s,x) => s+(x.grade||0), 0)/graded.length)*10)/10
-    : null
+  const subByTask = indexByTask(subs)
+  const score   = overallScore(subByTask)
   const onTime = graded.filter(s => {
     const task = TASKS.find(t => t.id === s.task_id)
     return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, emp?.start_date))
@@ -70,7 +71,7 @@ export default function Profile() {
               <T size={12.5}>{emp.email}</T>
             </div>
             <div style={{ display:'flex', gap:24, textAlign:'center' }}>
-              {[[`${pct}%`,'Tiến độ'],[avgGrade??'—','Điểm TB'],[`${onTime}/${graded.length}`,'Đúng hạn'],[pending.length,'Chờ chấm']].map(([n,l],i) => (
+              {[[`${pct}%`,'Tiến độ'],[`${score}%`,'Checklist'],[`${onTime}/${graded.length}`,'Đúng hạn'],[pending.length,'Chờ chấm']].map(([n,l],i) => (
                 <div key={i}>
                   <div style={{ fontSize:20, fontWeight:800, color: W.ink }}>{n}</div>
                   <div style={{ fontSize:11, color: W.ink3, marginTop:2 }}>{l}</div>
@@ -80,12 +81,15 @@ export default function Profile() {
           </div>
           <div style={{ marginTop:18 }}>
             <div style={{ paddingBottom:12, fontSize:13.5, fontWeight:700, color: W.acc, borderBottom:`2px solid ${W.acc}`, display:'inline-block' }}>
-              Bài nộp & điểm
+              Bài nộp & kết quả
             </div>
           </div>
         </div>
 
         <div style={{ flex:1, minHeight:0, overflowY:'auto', padding:'20px 28px' }}>
+          <div style={{ marginBottom:16 }}>
+            <PhaseBar subByTaskId={subByTask} />
+          </div>
           <div style={{ display:'flex', justifyContent:'space-between', marginBottom:14 }}>
             <H size={15}>Các bài đã nộp</H>
             <span style={{ fontSize:11.5, color: W.ink3, fontFamily: W.mono }}>
@@ -110,9 +114,8 @@ export default function Profile() {
                     {sub ? `${sub.file_name} · nộp ${fmtDate(sub.submitted_at)}` : 'chưa nộp'}
                   </div>
                 </div>
-                {sub?.status==='graded'   && <Tag tone="done">{sub.grade} điểm</Tag>}
+                {sub?.status==='graded'   && <Tag tone="done">{moduleScore(sub, task.id)}%</Tag>}
                 {sub?.status==='pending'  && <Tag tone="warn">Chờ chấm</Tag>}
-                {sub?.status==='revision' && <Tag tone="late">Cần sửa</Tag>}
                 {!sub && <Tag tone="neutral">Chưa nộp</Tag>}
                 {sub?.status==='pending' && (
                   <Link to={`/mgr/queue/${sub.id}`}><Btn kind="solid" size="sm">Chấm bài</Btn></Link>

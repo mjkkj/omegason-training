@@ -4,9 +4,10 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS, WEEKS, calcDeadline } from '../../data'
+import { moduleScore } from '../../checklist'
 
 function daysLeftLabel(deadline, sub) {
-  if (sub?.status === 'graded')  return sub.grade != null ? `${sub.grade}đ` : 'Đã nộp'
+  if (sub?.status === 'graded')  return `${moduleScore(sub, sub.task_id)}%`
   if (sub?.status === 'pending') return 'Chờ chấm'
   const d = Math.ceil((new Date(deadline) - new Date()) / 86400000)
   if (d < 0)  return `Trễ ${Math.abs(d)} ngày`

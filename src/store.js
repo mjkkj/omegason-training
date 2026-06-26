@@ -155,10 +155,12 @@ export async function saveTaskVideos(taskId, videos) {
   if (error) throw error
 }
 
-export async function gradeSubmission({ submissionId, grade, feedback, approved }) {
+// Lưu kết quả chấm dạng checklist: feedback chứa JSON review (xem checklist.js).
+// Không còn điểm số — grade luôn null; bài chuyển sang 'graded' (đã chấm).
+export async function saveReview({ submissionId, feedback }) {
   const { error } = await supabase.from('submissions').update({
-    status: approved ? 'graded' : 'revision',
-    grade: approved ? grade : null,
+    status: 'graded',
+    grade: null,
     feedback,
     graded_at: new Date().toISOString(),
   }).eq('id', submissionId)

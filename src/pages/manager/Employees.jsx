@@ -4,6 +4,7 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
+import { overallScore, indexByTask } from '../../checklist'
 
 export default function Employees() {
   const [employees, setEmployees] = useState([])
@@ -23,8 +24,8 @@ export default function Employees() {
     const pending = ms.filter(s => s.status === 'pending')
     const pct     = Math.round((graded.length / TASKS.length) * 100)
     const hasLate = TASKS.some(t => { const sub=ms.find(s=>s.task_id===t.id); return !sub&&now>new Date(calcDeadline(t, emp.start_date)) })
-    const avg     = graded.length ? Math.round((graded.reduce((s,x)=>s+(x.grade||0),0)/graded.length)*10)/10 : null
-    return { ...emp, pct, hasLate, pending: pending.length, graded: graded.length, avg }
+    const score   = overallScore(indexByTask(ms))
+    return { ...emp, pct, hasLate, pending: pending.length, graded: graded.length, score }
   }).sort((a,b)=>b.pct-a.pct)
 
   const avgPct = rows.length ? Math.round(rows.reduce((s,r)=>s+r.pct,0)/rows.length) : 0
@@ -46,7 +47,7 @@ export default function Employees() {
               letterSpacing:0.3, fontFamily: W.mono }}>
               <div style={{ flex:1 }}>NHÂN VIÊN</div>
               <div style={{ width:150 }}>TIẾN ĐỘ</div>
-              <div style={{ width:80 }}>ĐIỂM TB</div>
+              <div style={{ width:80 }}>ĐIỂM %</div>
               <div style={{ width:130 }}>TRẠNG THÁI</div>
               <div style={{ width:80 }} />
             </div>
@@ -78,8 +79,8 @@ export default function Employees() {
                   </div>
                   <div style={{ fontSize:10.5, color: W.ink3, marginTop:3 }}>{emp.graded}/{TASKS.length} task</div>
                 </div>
-                <div style={{ width:80, fontSize:14, fontWeight:700, color: emp.avg?W.done:W.ink4, fontFamily: W.mono }}>
-                  {emp.avg ?? '—'}
+                <div style={{ width:80, fontSize:14, fontWeight:700, color: emp.score?W.done:W.ink4, fontFamily: W.mono }}>
+                  {emp.score}%
                 </div>
                 <div style={{ width:130 }}>
                   {emp.hasLate   ? <Tag tone="late">Trễ hạn</Tag>

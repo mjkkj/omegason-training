@@ -5,6 +5,7 @@ import { W, Card, H, T, Btn, Tag, Ico, Ph, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
 import SubmissionView from '../../components/SubmissionView'
 import { TASKS, TASK_CONTENT, calcDeadline, moduleLabel } from '../../data'
+import { getChecklist, parseReview, moduleScore } from '../../checklist'
 
 function getYtId(url) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -58,6 +59,9 @@ export default function TaskDetail() {
     ? null
     : (taskVideos.length > 0 ? taskVideos : (content.videos || []))
 
+  // Checklist cần đạt; nếu bài đã chấm thì biết mục nào đã tick.
+  const checklistItems = getChecklist(id)
+  const reviewChecked  = sub?.status === 'graded' ? parseReview(sub).checked : null
 
   return (
     <Shell role="emp" title={`${moduleLabel(task)} · ${task.name}`}
@@ -188,18 +192,29 @@ export default function TaskDetail() {
             </div>
           )}
 
-          {/* TIÊU CHUẨN ĐẠT */}
-          {content.pass?.length > 0 && (
+          {/* CHECKLIST CẦN ĐẠT */}
+          {checklistItems.length > 0 && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>TIÊU CHUẨN ĐẠT</H>
+              <H size={14} mb={10} c={W.ink2}>
+                CHECKLIST CẦN ĐẠT
+                {reviewChecked != null && (
+                  <span style={{ fontSize:12, fontWeight:700, color:W.done, marginLeft:8, fontFamily:W.mono }}>
+                    {moduleScore(sub, id)}% · {reviewChecked.length}/{checklistItems.length}
+                  </span>
+                )}
+              </H>
               <Card pad={14} fill={W.doneSoft} line="transparent">
                 <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
-                  {content.pass.map((p, i) => (
-                    <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:9 }}>
-                      <Ico name="check" s={15} c={W.done} />
-                      <T size={12.5} c={W.ink} style={{ lineHeight:1.5 }}>{p}</T>
-                    </div>
-                  ))}
+                  {checklistItems.map((p, i) => {
+                    const done = reviewChecked != null && reviewChecked.includes(i)
+                    const missed = reviewChecked != null && !done
+                    return (
+                      <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:9 }}>
+                        <Ico name={missed ? 'x' : 'check'} s={15} c={missed ? W.ink4 : W.done} />
+                        <T size={12.5} c={missed ? W.ink3 : W.ink} style={{ lineHeight:1.5 }}>{p}</T>
+                      </div>
+                    )
+                  })}
                 </div>
               </Card>
             </div>
@@ -252,21 +267,21 @@ export default function TaskDetail() {
                     <div style={{ fontSize:13, fontWeight:700, fontFamily: W.mono }}>{sub.file_name}</div>
                     <T size={11.5} style={{ marginTop:2 }}>
                       Nộp {new Date(sub.submitted_at).toLocaleString('vi-VN')}
-                      {sub.status === 'graded' && sub.grade != null && ` · ${sub.grade} điểm`}
+                      {sub.status === 'graded' && ' · đã chấm'}
                     </T>
                   </div>
-                  {sub.status === 'graded' && sub.grade != null && (
-                    <div style={{ fontSize:22, fontWeight:800, color: W.done }}>{sub.grade}</div>
+                  {sub.status === 'graded' && (
+                    <div style={{ fontSize:22, fontWeight:800, color: W.done }}>{moduleScore(sub, id)}%</div>
                   )}
                 </div>
                 <div style={{ marginTop:12, border:`1px solid rgba(0,0,0,.08)`, borderRadius:8,
                   overflow:'hidden', height:340, background:'#fff' }}>
                   <SubmissionView sub={sub} pad={14} />
                 </div>
-                {sub.feedback && (
+                {parseReview(sub).comment && (
                   <div style={{ marginTop:12, paddingTop:12, borderTop:`1px solid rgba(0,0,0,.08)` }}>
                     <T size={11} mono c={W.ink3} mb={4}>NHẬN XÉT</T>
-                    <T size={12.5}>{sub.feedback}</T>
+                    <T size={12.5}>{parseReview(sub).comment}</T>
                   </div>
                 )}
               </Card>

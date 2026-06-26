@@ -4,6 +4,7 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, WEEKS, calcDeadline } from '../../data'
+import { overallScore, indexByTask } from '../../checklist'
 
 export default function Stats() {
   const [employees, setEmployees] = useState([])
@@ -21,14 +22,13 @@ export default function Stats() {
     const graded = ms.filter(s => s.status === 'graded')
     const pct = Math.round((graded.length / TASKS.length) * 100)
     const hasLate = TASKS.some(t => { const sub = ms.find(s=>s.task_id===t.id); return !sub && new Date()>new Date(calcDeadline(t, emp.start_date)) })
-    return { ...emp, pct, hasLate, pending: ms.filter(s=>s.status==='pending').length }
+    return { ...emp, pct, hasLate, pending: ms.filter(s=>s.status==='pending').length, score: overallScore(indexByTask(ms)) }
   })
 
   const avgPct      = empData.length ? Math.round(empData.reduce((s,e)=>s+e.pct,0)/empData.length) : 0
   const lateCount   = empData.filter(e=>e.hasLate).length
   const pendingTotal = subs.filter(s=>s.status==='pending').length
-  const allGrades   = subs.filter(s=>s.status==='graded'&&s.grade!=null).map(s=>s.grade)
-  const avgGrade    = allGrades.length ? Math.round((allGrades.reduce((a,b)=>a+b,0)/allGrades.length)*10)/10 : null
+  const avgScore    = empData.length ? Math.round(empData.reduce((s,e)=>s+e.score,0)/empData.length) : 0
 
   const weekBars = WEEKS.map(w => {
     const possible = employees.length * w.taskIds.length
@@ -56,7 +56,7 @@ export default function Stats() {
             <Stat n={`${avgPct}%`}      label="Hoàn thành TB"    tone={W.acc} />
             <Stat n={lateCount}         label="Đang trễ hạn"     tone={lateCount?W.late:W.ink} sub={lateCount?'cần nhắc':'tốt!'} />
             <Stat n={pendingTotal}      label="Chờ chấm"         tone={pendingTotal?W.warn:W.ink} />
-            <Stat n={avgGrade ?? '—'}   label="Điểm TB đội"      tone={W.done} sub="thang 10" />
+            <Stat n={`${avgScore}%`}    label="Checklist TB đội" tone={W.done} />
           </div>
 
           <div style={{ display:'flex', gap:14 }}>

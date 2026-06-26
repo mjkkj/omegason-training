@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
-import { W, Card, H, T, Btn, Tag, Check, Field, Ico, Avatar } from '../../design-system'
-import { fetchAllSubmissions, gradeSubmission } from '../../store'
+import { W, Card, H, T, Btn, Check, Field, Ico, Avatar } from '../../design-system'
+import { fetchAllSubmissions, saveReview } from '../../store'
 import SubmissionView from '../../components/SubmissionView'
 import { TASKS, moduleLabel } from '../../data'
+import { getChecklist, parseReview, buildReview } from '../../checklist'
 
 function timeAgo(iso) {
   const d = Math.floor((new Date() - new Date(iso)) / 60000)
@@ -14,51 +15,52 @@ function timeAgo(iso) {
   return `${Math.floor(h/24)} ngày trước`
 }
 
-const CRITERIA = ['Đủ section yêu cầu', 'Nội dung tự chỉnh (không copy AI)', 'Trình bày dễ đọc, có ví dụ']
-
 export default function Queue() {
   const { subId } = useParams()
   const navigate  = useNavigate()
   const [allSubs, setAllSubs]   = useState([])
   const [loading, setLoading]   = useState(true)
-  const [grade, setGrade]       = useState('8.5')
+  const [checked, setChecked]   = useState([])     // index các mục đã tick
   const [feedback, setFeedback] = useState('')
-  const [criteria, setCriteria] = useState([true, true, false])
   const [saving, setSaving]     = useState(false)
 
   const loadData = () => fetchAllSubmissions().then(data => { setAllSubs(data); setLoading(false) })
   useEffect(() => { loadData() }, [])
 
-  // queue = pending subs with their employee profile embedded
+  // queue = bài chờ chấm, kèm hồ sơ nhân viên
   const queue = allSubs
     .filter(s => s.status === 'pending')
     .sort((a, b) => new Date(a.submitted_at) - new Date(b.submitted_at))
 
   const selected = queue.find(s => s.id === subId) || queue[0]
 
-  const handleGrade = async (approved) => {
+  // Nạp lại checklist + nhận xét mỗi khi đổi bài.
+  useEffect(() => {
+    if (!selected) { setChecked([]); setFeedback(''); return }
+    const r = parseReview(selected)
+    setChecked(r.checked)
+    setFeedback(r.comment)
+  }, [selected?.id])
+
+  const emp   = selected?.profiles
+  const task  = selected ? TASKS.find(t => t.id === selected.task_id) : null
+  const items = selected ? getChecklist(selected.task_id) : []
+  const pct   = items.length ? Math.round((checked.length / items.length) * 100) : 0
+  const toggle = (i) => setChecked(c => c.includes(i) ? c.filter(x => x !== i) : [...c, i])
+
+  const handleSave = async () => {
     if (!selected) return
     setSaving(true)
     try {
-      await gradeSubmission({
-        submissionId: selected.id,
-        grade: approved ? parseFloat(grade) || 8.5 : null,
-        feedback,
-        approved,
-      })
+      await saveReview({ submissionId: selected.id, feedback: buildReview(checked, feedback) })
       await loadData()
-      setFeedback(''); setGrade('8.5'); setCriteria([true,true,false])
-      // Advance to next
+      // Sang bài chờ kế tiếp
       const remaining = queue.filter(s => s.id !== selected.id)
-      if (remaining.length > 0) navigate(`/mgr/queue/${remaining[0].id}`)
-      else navigate('/mgr/queue')
+      navigate(remaining.length ? `/mgr/queue/${remaining[0].id}` : '/mgr/queue')
     } finally {
       setSaving(false)
     }
   }
-
-  const emp  = selected?.profiles
-  const task = selected ? TASKS.find(t => t.id === selected.task_id) : null
 
   return (
     <Shell role="mgr" title="Hàng chờ chấm bài" sub={`${queue.length} báo cáo đang chờ`}
@@ -102,7 +104,7 @@ export default function Queue() {
             })}
           </div>
 
-          {/* right: preview + grade */}
+          {/* right: preview + checklist */}
           {selected && (
             <div style={{ flex:1, minWidth:0, display:'flex', gap:14 }}>
               <Card pad={0} style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -120,29 +122,27 @@ export default function Queue() {
                 </div>
               </Card>
 
-              {/* grade panel */}
-              <div style={{ width:244, flexShrink:0, display:'flex', flexDirection:'column', gap:12 }}>
+              {/* checklist panel */}
+              <div style={{ width:300, flexShrink:0, display:'flex', flexDirection:'column', gap:12 }}>
                 <Card pad={16}>
-                  <T size={11} mono c={W.ink3} mb={12}>CHẤM ĐIỂM</T>
-                  <div style={{ display:'flex', alignItems:'baseline', gap:6, marginBottom:14 }}>
-                    <input type="number" min="0" max="10" step="0.5"
-                      value={grade} onChange={e => setGrade(e.target.value)}
-                      style={{ width:64, fontSize:24, fontWeight:800, textAlign:'center',
-                        border:`1px solid ${W.line}`, borderRadius:8, padding:'6px 0',
-                        color: W.ink, fontFamily: W.font, outline:'none' }} />
-                    <span style={{ fontSize:14, color: W.ink3 }}>/ 10</span>
+                  <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:12 }}>
+                    <T size={11} mono c={W.ink3}>CHECKLIST · {checked.length}/{items.length}</T>
+                    <span style={{ fontSize:22, fontWeight:800, color: pct===100?W.done:W.acc, fontFamily: W.font }}>{pct}%</span>
                   </div>
-                  <T size={11} weight={600} c={W.ink2} mb={8}>Tiêu chí</T>
-                  {CRITERIA.map((c,i) => (
-                    <Check key={i} on={criteria[i]} label={c} style={{ marginBottom:8, cursor:'pointer' }}
-                      onClick={() => setCriteria(cr => cr.map((v,j) => j===i?!v:v))} />
-                  ))}
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    {items.map((label, i) => (
+                      <Check key={i} on={checked.includes(i)} label={label}
+                        style={{ cursor:'pointer', alignItems:'flex-start' }}
+                        onClick={() => toggle(i)} />
+                    ))}
+                    {items.length === 0 && <T size={12.5} c={W.ink3}>Module này chưa có checklist.</T>}
+                  </div>
                 </Card>
 
                 <Card pad={14}>
-                  <Field label="Nhận xét">
+                  <Field label="Nhận xét cho nhân viên">
                     <textarea value={feedback} onChange={e => setFeedback(e.target.value)}
-                      placeholder="Nhận xét giúp nhân viên cải thiện..." rows={4}
+                      placeholder="Góp ý giúp nhân viên cải thiện các mục còn thiếu…" rows={4}
                       style={{ width:'100%', border:`1px solid ${W.line}`, borderRadius:8, padding:'10px 12px',
                         fontSize:12.5, color: W.ink, fontFamily: W.font, resize:'vertical',
                         outline:'none', boxSizing:'border-box', lineHeight:1.5 }} />
@@ -156,12 +156,9 @@ export default function Queue() {
                   </Card>
                 )}
 
-                <div style={{ display:'flex', gap:8 }}>
-                  <Btn kind="ghost" size="md" style={{ flex:1 }} disabled={saving}
-                    onClick={() => handleGrade(false)}>Yêu cầu sửa</Btn>
-                  <Btn kind="solid" size="md" style={{ flex:1 }} disabled={saving}
-                    onClick={() => handleGrade(true)}>{saving?'Đang lưu…':'Duyệt'}</Btn>
-                </div>
+                <Btn kind="solid" size="md" full disabled={saving} onClick={handleSave}>
+                  {saving ? 'Đang lưu…' : 'Lưu kết quả chấm'}
+                </Btn>
               </div>
             </div>
           )}

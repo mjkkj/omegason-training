@@ -4,6 +4,8 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS, WEEKS, calcDeadline } from '../../data'
+import { moduleScore, indexByTask, overallScore } from '../../checklist'
+import PhaseBar from '../../components/PhaseBar'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -25,9 +27,8 @@ export default function Progress() {
   const pending = subs.filter(s => s.status === 'pending')
   const total   = TASKS.length
   const donePct = Math.round((graded.length / total) * 100)
-  const avgGrade = graded.length
-    ? Math.round((graded.reduce((s,x) => s + (x.grade||0), 0) / graded.length) * 10) / 10
-    : null
+  const subByTask = indexByTask(subs)
+  const score   = overallScore(subByTask)
   const onTime  = graded.filter(s => {
     const task = TASKS.find(t => t.id === s.task_id)
     return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, currentUser?.start_date))
@@ -47,7 +48,7 @@ export default function Progress() {
         <div style={{ display:'flex', gap:12 }}>
           <Stat n={graded.length}  label="Đã nộp & chấm"     sub={`trên ${total} task`} />
           <Stat n={pending.length} label="Đang chờ chấm"     tone={pending.length ? W.warn : W.ink} />
-          <Stat n={avgGrade ?? '—'} label="Điểm trung bình"  tone={W.done} sub="thang 10" />
+          <Stat n={`${score}%`}     label="Tiến độ checklist" tone={W.done} />
           <Stat n={onTime}          label="Đúng hạn"          tone={W.acc} />
         </div>
 
@@ -75,6 +76,7 @@ export default function Progress() {
                 ))}
               </div>
             </Card>
+            <PhaseBar subByTaskId={subByTask} />
           </div>
 
           <Card pad={0} style={{ flex:1, minWidth:0, overflow:'hidden' }}>
@@ -104,13 +106,12 @@ export default function Progress() {
                   <div style={{ flex:1, fontWeight:600, overflow:'hidden', textOverflow:'ellipsis',
                     whiteSpace:'nowrap', paddingRight:8 }}>{task?.name}</div>
                   <div style={{ width:70, color: W.ink2, fontFamily: W.mono }}>{formatDate(s.submitted_at)}</div>
-                  <div style={{ width:70, fontWeight:700, color: s.grade!=null ? W.done : W.ink4 }}>
-                    {s.grade ?? '—'}
+                  <div style={{ width:70, fontWeight:700, color: s.status==='graded' ? W.done : W.ink4 }}>
+                    {s.status==='graded' ? `${moduleScore(s, s.task_id)}%` : '—'}
                   </div>
                   <div style={{ width:120 }}>
-                    {s.status === 'graded'   && <Tag tone="done">Đã chấm</Tag>}
-                    {s.status === 'pending'  && <Tag tone="warn">Chờ chấm</Tag>}
-                    {s.status === 'revision' && <Tag tone="late">Cần sửa</Tag>}
+                    {s.status === 'graded'  && <Tag tone="done">Đã chấm</Tag>}
+                    {s.status === 'pending' && <Tag tone="warn">Chờ chấm</Tag>}
                   </div>
                 </div>
               )
