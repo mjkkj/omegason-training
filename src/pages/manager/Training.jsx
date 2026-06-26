@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Ico, Skel } from '../../design-system'
 import { fetchTaskResources, saveTaskVideos } from '../../store'
-import { TASKS, WEEKS } from '../../data'
+import { TASKS, WEEKS, TASK_CONTENT } from '../../data'
 
 export default function Training() {
   const [resources, setResources] = useState({})
@@ -18,8 +18,16 @@ export default function Training() {
     fetchTaskResources().then(data => { setResources(data); setLoading(false) })
   }, [])
 
+  // Video gợi ý mặc định (đã tuyển sẵn) cho từng task.
+  const defaultsFor = (id) => TASK_CONTENT[id]?.videos || []
+  // Đã có dữ liệu lưu trên Supabase cho task này chưa?
+  const hasSaved = (id) => (resources[id] || []).length > 0
+  const usingDefaults = !hasSaved(selected)
+
   useEffect(() => {
-    setVideos(resources[selected] || [])
+    // Ưu tiên video quản lý đã lưu; nếu chưa có thì hiện bộ mặc định để chỉnh/lưu.
+    const saved = resources[selected] || []
+    setVideos(saved.length ? saved : defaultsFor(selected))
     setSaved(false)
   }, [selected, resources])
 
@@ -55,7 +63,9 @@ export default function Training() {
                 letterSpacing:0.5, padding:'0 4px 6px' }}>{week.wk.toUpperCase()}</div>
               <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
                 {TASKS.filter(t => week.taskIds.includes(t.id)).map(t => {
-                  const cnt     = (resources[t.id] || []).length
+                  const savedCnt = (resources[t.id] || []).length
+                  const cnt      = savedCnt || defaultsFor(t.id).length
+                  const isDefaultCnt = savedCnt === 0 && cnt > 0
                   const isActive = t.id === selected
                   return (
                     <div key={t.id} onClick={() => setSelected(t.id)}
@@ -73,7 +83,7 @@ export default function Training() {
                         fontWeight: isActive ? 600 : 400, overflow:'hidden',
                         textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.name}</span>
                       {cnt > 0 && (
-                        <span style={{ fontSize:10, background:W.done, color:'#fff',
+                        <span style={{ fontSize:10, background: isDefaultCnt ? W.ink4 : W.done, color:'#fff',
                           borderRadius:10, padding:'1px 6px', fontFamily:W.mono, flexShrink:0 }}>{cnt}</span>
                       )}
                     </div>
@@ -93,12 +103,23 @@ export default function Training() {
               fontSize:15, fontWeight:800, fontFamily:W.mono, flexShrink:0 }}>{selected}</div>
             <div style={{ flex:1 }}>
               <H size={15}>{task?.name}</H>
-              <T size={12} c={W.ink3}>{videos.length} video đã thêm</T>
+              <T size={12} c={W.ink3}>
+                {videos.length} video {usingDefaults ? '(gợi ý mặc định)' : 'đã lưu'}
+              </T>
             </div>
             <Btn kind={saved ? 'soft' : 'solid'} size="sm" disabled={saving} onClick={handleSave}>
-              {saving ? 'Đang lưu…' : saved ? '✓ Đã lưu' : 'Lưu thay đổi'}
+              {saving ? 'Đang lưu…' : saved ? '✓ Đã lưu' : usingDefaults ? 'Áp dụng & lưu' : 'Lưu thay đổi'}
             </Btn>
           </div>
+
+          {usingDefaults && videos.length > 0 && !saved && (
+            <Card pad={11} fill={W.accSoft} line="transparent" style={{ display:'flex', gap:9, alignItems:'flex-start' }}>
+              <Ico name="play" s={14} c={W.acc} />
+              <T size={12} c={W.ink2}>
+                Đây là bộ video gợi ý mặc định đã tuyển sẵn — học viên đã thấy chúng. Bạn có thể xoá/thêm rồi bấm <b>Áp dụng &amp; lưu</b> để chỉnh theo ý mình.
+              </T>
+            </Card>
+          )}
 
           {/* Add new */}
           <Card pad={14} fill={W.panel} line={W.line2}>
