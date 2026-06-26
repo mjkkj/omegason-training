@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Bar, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, WEEKS, calcDeadline } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
+import { SCORE_PHASES, phaseScore, overallScore, indexByTask } from '../../checklist'
 
 function taskStatus(sub, task, startDate) {
   if (!sub) return new Date() > new Date(calcDeadline(task, startDate)) ? 'late' : 'todo'
@@ -50,11 +51,12 @@ export default function Roadmap() {
   }, [currentUser?.id])
 
   const getSub = (tid) => subs.find(s => s.task_id === tid)
+  const subByTask = indexByTask(subs)
   const doneCount = TASKS.filter(t => getSub(t.id)?.status === 'graded').length
-  const overallPct = Math.round((doneCount / TASKS.length) * 100)
+  const overallPct = overallScore(subByTask)
 
   return (
-    <Shell role="emp" title="Lộ trình 8 module + Capstone" sub="Một sản phẩm, kéo tới cùng — mỗi module một output thật"
+    <Shell role="emp" title="Lộ trình 3 phase · 8 module + Capstone" sub="Một sản phẩm, kéo tới cùng — mỗi module một output thật"
       actions={
         <>
           <Tag tone="acc">Tiến độ {overallPct}%</Tag>
@@ -70,26 +72,25 @@ export default function Roadmap() {
         </Card>
 
         {loading ? (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14 }}>
-            {[1,2,3,4].map(i => <Skel key={i} lines={4} style={{ height:200 }} />)}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+            {[1,2,3].map(i => <Skel key={i} lines={4} style={{ height:200 }} />)}
           </div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14 }}>
-            {WEEKS.map((w, i) => {
-              const wkDone = w.taskIds.filter(id => getSub(id)?.status === 'graded').length
-              const wkPct  = Math.round((wkDone / w.taskIds.length) * 100)
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, alignItems:'start' }}>
+            {SCORE_PHASES.map((p, i) => {
+              const phPct = phaseScore(subByTask, p.taskIds)
               return (
-                <div key={i} style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                <div key={p.key} style={{ display:'flex', flexDirection:'column', gap:10 }}>
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                     <div>
-                      <div style={{ fontSize:13, fontWeight:700 }}>{w.wk}</div>
-                      <div style={{ fontSize:10.5, color: W.ink3, marginTop:1 }}>{w.theme}</div>
+                      <div style={{ fontSize:13, fontWeight:700 }}>Phase {i+1}</div>
+                      <div style={{ fontSize:10.5, color: W.ink3, marginTop:1 }}>{p.name}</div>
                     </div>
-                    <span style={{ fontSize:10, color: W.ink4, fontFamily: W.mono }}>{wkPct}%</span>
+                    <span style={{ fontSize:10, color: W.ink4, fontFamily: W.mono }}>{phPct}%</span>
                   </div>
-                  <Bar pct={wkPct} h={5} c={wkPct === 100 ? W.done : W.acc} />
+                  <Bar pct={phPct} h={5} c={phPct === 100 ? W.done : W.acc} />
                   <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                    {w.taskIds.map(tid => {
+                    {p.taskIds.map(tid => {
                       const task = TASKS.find(t => t.id === tid)
                       const st   = taskStatus(getSub(tid), task, currentUser?.start_date)
                       return <TaskPill key={tid} task={task} st={st} to={`/emp/task/${tid}`} />
@@ -100,21 +101,6 @@ export default function Roadmap() {
             })}
           </div>
         )}
-
-        {/* Final */}
-        {(() => {
-          const ft = TASKS.find(t => t.final)
-          const st = taskStatus(getSub('F'), ft, currentUser?.start_date)
-          return (
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                <H size={13} c={W.ink2}>Capstone — Dự án end-to-end</H>
-                <div style={{ flex:1, height:1, background: W.line2 }} />
-              </div>
-              <TaskPill task={ft} st={st} to="/emp/task/F" />
-            </div>
-          )
-        })()}
       </div>
     </Shell>
   )

@@ -37,9 +37,10 @@ export function readFileEntry(f) {
 }
 
 // Build the payload to store from composer state.
-export function buildSubmission({ text, links, files }) {
+// selfChecked = index các mục checklist nhân viên tự rà (lưu kèm bài).
+export function buildSubmission({ text, links, files, selfChecked }) {
   const cleanLinks = (links || []).filter(l => l.url?.trim()).map(l => ({ url: l.url.trim(), label: (l.label || '').trim() }))
-  const payload = { __sub: 1, text: (text || '').trim(), links: cleanLinks, files: files || [] }
+  const payload = { __sub: 1, text: (text || '').trim(), links: cleanLinks, files: files || [], selfChecked: selfChecked || [] }
   const fileContent = JSON.stringify(payload)
 
   const parts = []
@@ -60,12 +61,12 @@ export function parseSubmission(sub) {
   try {
     const o = JSON.parse(content)
     if (o && o.__sub === 1) {
-      return { kind: 'structured', text: o.text || '', links: o.links || [], files: o.files || [] }
+      return { kind: 'structured', text: o.text || '', links: o.links || [], files: o.files || [], selfChecked: o.selfChecked || [] }
     }
   } catch { /* not JSON — fall through */ }
   const trimmed = content.trimStart()
-  if (trimmed.startsWith('<')) return { kind: 'html', html: content, text: '', links: [], files: [] }
-  return { kind: 'text', text: content, links: [], files: [] }
+  if (trimmed.startsWith('<')) return { kind: 'html', html: content, text: '', links: [], files: [], selfChecked: [] }
+  return { kind: 'text', text: content, links: [], files: [], selfChecked: [] }
 }
 
 export function formatSize(bytes) {

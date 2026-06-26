@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ring, Stat, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, WEEKS, calcDeadline } from '../../data'
+import { TASKS, calcDeadline } from '../../data'
 import { moduleScore, indexByTask, overallScore } from '../../checklist'
 import PhaseBar from '../../components/PhaseBar'
 
@@ -34,13 +34,6 @@ export default function Progress() {
     return task && new Date(s.submitted_at) <= new Date(calcDeadline(task, currentUser?.start_date))
   }).length
 
-  const weeks = WEEKS.map((wk, i) => {
-    const w  = i + 1
-    const wt = TASKS.filter(t => t.week === w)
-    const wd = wt.filter(t => graded.find(s => s.task_id === t.id)).length
-    return { w, label: wk.wk, pct: wt.length ? Math.round((wd/wt.length)*100) : 0, done: wd, total: wt.length }
-  })
-
   return (
     <Shell role="emp" title="Tổng quan tiến độ" sub={currentUser?.name}
       actions={<Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>Xem lịch</Btn></Link>}>
@@ -60,20 +53,6 @@ export default function Progress() {
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontSize:13, fontWeight:700 }}>{graded.length} / {total} task</div>
                 <T size={11.5} style={{ marginTop:3 }}>Còn {total - graded.length} task</T>
-              </div>
-            </Card>
-            <Card pad={16}>
-              <T size={11} mono c={W.ink3} mb={12}>TIẾN ĐỘ THEO GIAI ĐOẠN</T>
-              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {weeks.map(({w,label,pct,done,total:wt}) => (
-                  <div key={w}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
-                      <span style={{ fontSize:12, fontWeight:600 }}>{label}</span>
-                      <span style={{ fontSize:11, color: W.ink3, fontFamily: W.mono }}>{done}/{wt}</span>
-                    </div>
-                    <Bar pct={pct} h={6} c={pct===100 ? W.done : W.acc} />
-                  </div>
-                ))}
               </div>
             </Card>
             <PhaseBar subByTaskId={subByTask} />

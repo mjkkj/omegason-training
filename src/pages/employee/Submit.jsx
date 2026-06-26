@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
-import { W, Card, H, T, Btn, Field, Ico } from '../../design-system'
+import { W, Card, H, T, Btn, Check, Field, Ico } from '../../design-system'
 import { useStore, fetchMySubmissions, upsertSubmission } from '../../store'
 import { TASKS, moduleLabel } from '../../data'
+import { getChecklist } from '../../checklist'
 import {
   readFileEntry, buildSubmission, parseSubmission, isImage, isHtml,
   formatSize, MAX_FILE_BYTES, MAX_TOTAL_BYTES,
@@ -19,6 +20,7 @@ export default function Submit() {
   const [text, setText]     = useState('')
   const [files, setFiles]   = useState([])
   const [links, setLinks]   = useState([])
+  const [selfChecked, setSelfChecked] = useState([])
   const [note, setNote]     = useState('')
   const [dragging, setDragging] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -37,6 +39,7 @@ export default function Submit() {
         setText(c.text || '')
         setFiles(c.files || [])
         setLinks(c.links?.length ? c.links : [])
+        setSelfChecked(c.selfChecked || [])
       }
     })
   }, [currentUser?.id, id])
@@ -44,6 +47,8 @@ export default function Submit() {
   if (!task) return <div style={{ padding:32 }}>Không tìm thấy task.</div>
 
   const totalBytes = files.reduce((s, f) => s + (f.size || 0), 0)
+  const checklist  = getChecklist(id)
+  const toggleCheck = (i) => setSelfChecked(s => s.includes(i) ? s.filter(x => x !== i) : [...s, i])
 
   const addFiles = async (list) => {
     const arr = Array.from(list || [])
@@ -65,7 +70,7 @@ export default function Submit() {
   const removeLink = (i) => setLinks(prev => prev.filter((_, j) => j !== i))
 
   const handleSubmit = async () => {
-    const built = buildSubmission({ text, links, files })
+    const built = buildSubmission({ text, links, files, selfChecked })
     if (built.isEmpty) { setError('Hãy nhập nội dung, đính kèm tệp hoặc dán ít nhất một liên kết.'); return }
     setSaving(true)
     try {
@@ -127,6 +132,28 @@ export default function Submit() {
           </div>
 
           <div style={{ padding:22, display:'flex', flexDirection:'column', gap:20 }}>
+
+            {/* CHECKLIST TỰ RÀ */}
+            {checklist.length > 0 && (
+              <div>
+                <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:8 }}>
+                  <T size={12} weight={600} c={W.ink2}>Checklist cần đạt <span style={{ color:W.ink4, fontWeight:400 }}>· tự rà trước khi nộp</span></T>
+                  <span style={{ fontSize:12, fontWeight:700, fontFamily:W.mono,
+                    color: selfChecked.length===checklist.length ? W.done : W.acc }}>
+                    {selfChecked.length}/{checklist.length}
+                  </span>
+                </div>
+                <Card pad={14} fill={W.panel} line={W.line2}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                    {checklist.map((item, i) => (
+                      <Check key={i} on={selfChecked.includes(i)} label={item}
+                        style={{ cursor:'pointer', alignItems:'flex-start' }}
+                        onClick={() => toggleCheck(i)} />
+                    ))}
+                  </div>
+                </Card>
+              </div>
+            )}
 
             {/* TEXT */}
             <Field label="Nội dung báo cáo">

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Dot, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
-import { TASKS, WEEKS, calcDeadline } from '../../data'
-import { moduleScore } from '../../checklist'
+import { TASKS, calcDeadline } from '../../data'
+import { moduleScore, SCORE_PHASES } from '../../checklist'
 
 function daysLeftLabel(deadline, sub) {
   if (sub?.status === 'graded')  return `${moduleScore(sub, sub.task_id)}%`
@@ -49,21 +49,23 @@ export default function Schedule() {
   const past     = TASKS.filter(t => new Date(dl(t)) < now)
 
   const groups = []
-  const weekMap = {}
+  const phaseMap = {}
   upcoming.forEach(t => {
-    const key = t.final ? 'Capstone' : (WEEKS[t.week - 1]?.wk || `Giai đoạn ${t.week}`)
-    if (!weekMap[key]) weekMap[key] = []
-    weekMap[key].push(t)
+    const idx = SCORE_PHASES.findIndex(p => p.taskIds.includes(t.id))
+    const p   = SCORE_PHASES[idx]
+    const key = p ? `Phase ${idx + 1} · ${p.name}` : 'Khác'
+    if (!phaseMap[key]) phaseMap[key] = []
+    phaseMap[key].push(t)
   })
-  Object.entries(weekMap).forEach(([label, tasks]) => groups.push({ label, tasks }))
+  Object.entries(phaseMap).forEach(([label, tasks]) => groups.push({ label, tasks }))
 
   const completed = past.filter(t => getSub(t.id)?.status === 'graded')
-  const overdue   = past.filter(t => { const s = getSub(t.id); return !s || s.status === 'revision' })
+  const overdue   = past.filter(t => !getSub(t.id))
   if (completed.length) groups.push({ label:'Đã hoàn thành', tasks: completed, done:true })
   if (overdue.length)   groups.push({ label:'Trễ deadline',  tasks: overdue,   overdue:true })
 
   return (
-    <Shell role="emp" title="Lịch nộp theo module" sub="Hạn nộp từng module · gần nhất ở trên"
+    <Shell role="emp" title="Lịch nộp theo 3 phase" sub="Hạn nộp từng module · gần nhất ở trên"
       actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>Lộ trình</Btn></Link>}>
 
       <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
