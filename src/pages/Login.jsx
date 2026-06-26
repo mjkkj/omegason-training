@@ -71,6 +71,7 @@ export default function Login() {
     <div style={{ minHeight:'100vh', background:'#f0eee9', display:'flex', alignItems:'center',
       justifyContent:'center', fontFamily: W.font, padding:24 }}>
       <div style={{ position:'fixed', inset:0, backgroundImage:`url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 0H0v60' fill='none' stroke='rgba(0,0,0,0.05)' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize:'60px 60px', pointerEvents:'none' }} />
+      <DotsBg />
 
       <div style={{ position:'relative', width:'100%', maxWidth:420 }}>
         {/* logo */}
@@ -157,4 +158,42 @@ const inputStyle = {
   width:'100%', border:`1px solid ${W.line}`, borderRadius:8, background:'#fff',
   padding:'10px 13px', fontSize:13.5, color: W.ink, fontFamily: W.font,
   outline:'none', boxSizing:'border-box', transition:'border-color .15s',
+}
+
+// Subtle floating blue dots in the background
+const DOTS = [
+  { left:'8%',  top:'18%', size:6,  dur:14, delay:0,   op:.45 },
+  { left:'18%', top:'72%', size:4,  dur:18, delay:2,   op:.35 },
+  { left:'27%', top:'40%', size:8,  dur:22, delay:4,   op:.30 },
+  { left:'40%', top:'12%', size:5,  dur:16, delay:1,   op:.40 },
+  { left:'48%', top:'85%', size:7,  dur:20, delay:5,   op:.28 },
+  { left:'62%', top:'28%', size:4,  dur:15, delay:3,   op:.42 },
+  { left:'73%', top:'60%', size:9,  dur:24, delay:6,   op:.25 },
+  { left:'82%', top:'20%', size:5,  dur:17, delay:2.5, op:.38 },
+  { left:'90%', top:'78%', size:6,  dur:19, delay:4.5, op:.32 },
+  { left:'55%', top:'52%', size:3,  dur:13, delay:1.5, op:.45 },
+  { left:'12%', top:'48%', size:5,  dur:21, delay:5.5, op:.30 },
+  { left:'68%', top:'88%', size:4,  dur:16, delay:3.5, op:.38 },
+]
+
+function DotsBg() {
+  return (
+    <div style={{ position:'fixed', inset:0, overflow:'hidden', pointerEvents:'none', zIndex:0 }}>
+      <style>{`
+        @keyframes loginDotFloat {
+          0%   { transform: translateY(0)      scale(1);   }
+          50%  { transform: translateY(-22px)  scale(1.25); }
+          100% { transform: translateY(0)      scale(1);   }
+        }
+      `}</style>
+      {DOTS.map((d, i) => (
+        <span key={i} style={{
+          position:'absolute', left:d.left, top:d.top,
+          width:d.size, height:d.size, borderRadius:'50%',
+          background: W.acc, opacity:d.op,
+          animation:`loginDotFloat ${d.dur}s ease-in-out ${d.delay}s infinite`,
+        }} />
+      ))}
+    </div>
+  )
 }
