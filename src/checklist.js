@@ -91,9 +91,14 @@ export function buildReview(checked, comment) {
 // Điểm module: chỉ tính khi đã chấm; = số mục tick / tổng mục × 100.
 export function moduleScore(sub, taskId) {
   if (!sub || sub.status !== 'graded') return 0
+  const { checked } = parseReview(sub)
+  // Tương thích ngược: bài chấm trước khi đổi sang checklist (feedback text,
+  // không có mục tick) nhưng có điểm số cũ 0–10 → quy đổi sang %.
+  if (checked.length === 0 && sub.grade != null) {
+    return Math.round((sub.grade / 10) * 100)
+  }
   const total = getChecklist(taskId).length
   if (!total) return 0
-  const { checked } = parseReview(sub)
   return Math.round((checked.length / total) * 100)
 }
 

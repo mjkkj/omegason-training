@@ -3,10 +3,9 @@ import { W, Avatar, Ico } from '../design-system'
 import { useStore } from '../store'
 
 const EMP_NAV = [
-  { ic:'home',  label:'Tổng quan',       path:'/emp/progress' },
-  { ic:'grid',  label:'Lộ trình',        path:'/emp/roadmap' },
-  { ic:'cal',   label:'Lịch nộp',        path:'/emp/schedule' },
-  { ic:'doc',   label:'Bài nộp của tôi', path:'/emp/submit' },
+  { ic:'home',  label:'Tổng quan',  path:'/emp/progress' },
+  { ic:'grid',  label:'Lộ trình',   path:'/emp/roadmap' },
+  { ic:'cal',   label:'Lịch nộp',   path:'/emp/schedule' },
 ];
 const MGR_NAV = [
   { ic:'chart',  label:'Thống kê',       path:'/mgr/stats' },

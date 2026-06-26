@@ -50,8 +50,8 @@ export default function TaskDetail() {
   if (!task) return <div style={{ padding:32 }}>Không tìm thấy task.</div>
 
   const dl  = daysLeft(calcDeadline(task, currentUser?.start_date))
-  const stTone = sub?.status === 'graded' ? 'done' : sub?.status === 'pending' ? 'warn' : sub?.status === 'revision' ? 'late' : dl.tone === 'late' ? 'late' : 'neutral'
-  const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
+  const stTone = sub?.status === 'graded' ? 'done' : sub?.status === 'pending' ? 'warn' : dl.tone === 'late' ? 'late' : 'neutral'
+  const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
 
   // Video gợi ý: ưu tiên link quản lý thêm trên Supabase; nếu chưa có thì
   // dùng bộ video mặc định đã tuyển chọn sẵn trong TASK_CONTENT.

@@ -59,10 +59,12 @@ export default function Schedule() {
   })
   Object.entries(phaseMap).forEach(([label, tasks]) => groups.push({ label, tasks }))
 
-  const completed = past.filter(t => getSub(t.id)?.status === 'graded')
-  const overdue   = past.filter(t => !getSub(t.id))
-  if (completed.length) groups.push({ label:'Đã hoàn thành', tasks: completed, done:true })
-  if (overdue.length)   groups.push({ label:'Trễ deadline',  tasks: overdue,   overdue:true })
+  const completed   = past.filter(t => getSub(t.id)?.status === 'graded')
+  const pendingPast = past.filter(t => getSub(t.id)?.status === 'pending')
+  const overdue     = past.filter(t => !getSub(t.id))
+  if (completed.length)   groups.push({ label:'Đã hoàn thành', tasks: completed,   done:true })
+  if (pendingPast.length) groups.push({ label:'Chờ chấm',      tasks: pendingPast })
+  if (overdue.length)     groups.push({ label:'Trễ deadline',  tasks: overdue,     overdue:true })
 
   return (
     <Shell role="emp" title="Lịch nộp theo 3 phase" sub="Hạn nộp từng module · gần nhất ở trên"
