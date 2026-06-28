@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Roadmap from './pages/employee/Roadmap'
 import TaskDetail from './pages/employee/TaskDetail'
 import Submit from './pages/employee/Submit'
+import Submissions from './pages/employee/Submissions'
 import Progress from './pages/employee/Progress'
 import Schedule from './pages/employee/Schedule'
 import EmpDocuments from './pages/employee/Documents'
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/emp/progress"   element={<Guard role="employee"><Progress /></Guard>} />
         <Route path="/emp/roadmap"    element={<Guard role="employee"><Roadmap /></Guard>} />
         <Route path="/emp/task/:id"   element={<Guard role="employee"><TaskDetail /></Guard>} />
+        <Route path="/emp/submit"     element={<Guard role="employee"><Submissions /></Guard>} />
         <Route path="/emp/submit/:id" element={<Guard role="employee"><Submit /></Guard>} />
         <Route path="/emp/schedule"   element={<Guard role="employee"><Schedule /></Guard>} />
         <Route path="/emp/documents" element={<Guard role="employee"><EmpDocuments /></Guard>} />

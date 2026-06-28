@@ -19,10 +19,13 @@ function download(doc) {
 export default function Documents() {
   const [docs, setDocs]       = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(null)
   const [q, setQ]             = useState('')
 
   useEffect(() => {
-    fetchDocuments().then(data => { setDocs(data); setLoading(false) })
+    fetchDocuments()
+      .then(data => { setDocs(data); setLoading(false) })
+      .catch(e => { setError(e.message); setLoading(false) })
   }, [])
 
   const filtered = docs.filter(d =>
@@ -40,7 +43,13 @@ export default function Documents() {
 
         {loading && <Skel lines={5} gap={12} h={56} />}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && error && (
+          <Card pad={16} fill={W.lateSoft} line="transparent">
+            <T size={13} c={W.late}>Không tải được tài liệu. Có thể bảng "documents" chưa được tạo trong Supabase (chạy supabase-documents.sql).</T>
+          </Card>
+        )}
+
+        {!loading && !error && filtered.length === 0 && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
             gap:10, color: W.ink3, padding:'60px 0' }}>
             <Ico name="folder" s={32} c={W.ink4} />
@@ -48,7 +57,7 @@ export default function Documents() {
           </div>
         )}
 
-        {!loading && filtered.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {filtered.map(doc => (
               <Card key={doc.id} pad={13} style={{ display:'flex', alignItems:'center', gap:13 }}>

@@ -23,7 +23,9 @@ export default function Documents() {
   const [saving, setSaving]   = useState(false)
   const inputRef = useRef()
 
-  const load = () => fetchDocuments().then(data => { setDocs(data); setLoading(false) })
+  const load = () => fetchDocuments()
+    .then(data => { setDocs(data); setLoading(false) })
+    .catch(e => { setError(e.message); setLoading(false) })
   useEffect(() => { load() }, [])
 
   const resetForm = () => { setTitle(''); setDesc(''); setFile(null); setEditingId(null); setError(null) }
