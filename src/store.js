@@ -155,6 +155,31 @@ export async function saveTaskVideos(taskId, videos) {
   if (error) throw error
 }
 
+export async function fetchDocuments() {
+  const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false })
+  if (error) throw error
+  return data || []
+}
+
+export async function uploadDocument({ title, description, fileName, fileData, fileSize, mimeType, uploadedBy }) {
+  const { error } = await supabase.from('documents').insert({
+    title, description: description || '',
+    file_name: fileName, file_data: fileData, file_size: fileSize, mime_type: mimeType,
+    uploaded_by: uploadedBy,
+  })
+  if (error) throw error
+}
+
+export async function updateDocument(id, { title, description }) {
+  const { error } = await supabase.from('documents').update({ title, description: description || '' }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteDocument(id) {
+  const { error } = await supabase.from('documents').delete().eq('id', id)
+  if (error) throw error
+}
+
 // Lưu kết quả chấm dạng checklist: feedback chứa JSON review (xem checklist.js).
 // Không còn điểm số — grade luôn null; bài chuyển sang 'graded' (đã chấm).
 export async function saveReview({ submissionId, feedback }) {

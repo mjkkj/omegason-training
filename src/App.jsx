@@ -8,12 +8,14 @@ import TaskDetail from './pages/employee/TaskDetail'
 import Submit from './pages/employee/Submit'
 import Progress from './pages/employee/Progress'
 import Schedule from './pages/employee/Schedule'
+import EmpDocuments from './pages/employee/Documents'
 import Stats from './pages/manager/Stats'
 import Matrix from './pages/manager/Matrix'
 import Queue from './pages/manager/Queue'
 import Profile from './pages/manager/Profile'
 import Employees from './pages/manager/Employees'
 import Training from './pages/manager/Training'
+import MgrDocuments from './pages/manager/Documents'
 import Roles from './pages/manager/Roles'
 
 function Guard({ role, children }) {
@@ -44,6 +46,7 @@ export default function App() {
         <Route path="/emp/task/:id"   element={<Guard role="employee"><TaskDetail /></Guard>} />
         <Route path="/emp/submit/:id" element={<Guard role="employee"><Submit /></Guard>} />
         <Route path="/emp/schedule"   element={<Guard role="employee"><Schedule /></Guard>} />
+        <Route path="/emp/documents" element={<Guard role="employee"><EmpDocuments /></Guard>} />
 
         <Route path="/mgr" element={<Navigate to="/mgr/stats" replace />} />
         <Route path="/mgr/stats"        element={<Guard role="manager"><Stats /></Guard>} />
@@ -53,6 +56,7 @@ export default function App() {
         <Route path="/mgr/employees"    element={<Guard role="manager"><Employees /></Guard>} />
         <Route path="/mgr/employee/:id" element={<Guard role="manager"><Profile /></Guard>} />
         <Route path="/mgr/training"     element={<Guard role="manager"><Training /></Guard>} />
+        <Route path="/mgr/documents"    element={<Guard role="manager"><MgrDocuments /></Guard>} />
         <Route path="/mgr/roles"        element={<Guard role="manager"><Roles /></Guard>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />

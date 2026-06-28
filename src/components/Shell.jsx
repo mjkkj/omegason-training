@@ -7,6 +7,7 @@ const EMP_NAV = [
   { ic:'grid',  label:'Lộ trình',        path:'/emp/roadmap' },
   { ic:'cal',   label:'Lịch nộp',        path:'/emp/schedule' },
   { ic:'doc',   label:'Bài nộp của tôi', path:'/emp/submit' },
+  { ic:'folder', label:'Tài liệu',       path:'/emp/documents' },
 ];
 const MGR_NAV = [
   { ic:'chart',  label:'Thống kê',       path:'/mgr/stats' },
@@ -14,6 +15,7 @@ const MGR_NAV = [
   { ic:'inbox',  label:'Hàng chờ chấm',  path:'/mgr/queue' },
   { ic:'user',   label:'Nhân viên',      path:'/mgr/employees' },
   { ic:'play',   label:'Nội dung đào tạo', path:'/mgr/training' },
+  { ic:'folder', label:'Tài liệu',       path:'/mgr/documents' },
   { ic:'shield', label:'Phân quyền',     path:'/mgr/roles' },
 ];
 
