@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './store'
 import { W } from './design-system'
-import { ROLES, isStaff, homePathFor } from './roles'
+import { ROLES, homePathFor } from './roles'
 
 import Login from './pages/Login'
 import Roadmap from './pages/employee/Roadmap'
