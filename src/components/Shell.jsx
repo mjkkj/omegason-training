@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { W, Avatar, Ico } from '../design-system'
 import { useStore } from '../store'
+import { ROLES, ROLE_LABEL } from '../roles'
 
 const EMP_NAV = [
   { ic:'home',  label:'Tổng quan',       path:'/emp/progress' },
@@ -9,13 +10,16 @@ const EMP_NAV = [
   { ic:'doc',   label:'Bài nộp của tôi', path:'/emp/submit' },
   { ic:'folder', label:'Tài liệu',       path:'/emp/documents' },
 ];
-const MGR_NAV = [
+const MGR_NAV_BASE = [
   { ic:'chart',  label:'Thống kê',       path:'/mgr/stats' },
   { ic:'grid',   label:'Bảng tiến độ',   path:'/mgr/matrix' },
   { ic:'inbox',  label:'Hàng chờ chấm',  path:'/mgr/queue' },
   { ic:'user',   label:'Nhân viên',      path:'/mgr/employees' },
   { ic:'play',   label:'Nội dung đào tạo', path:'/mgr/training' },
   { ic:'folder', label:'Tài liệu',       path:'/mgr/documents' },
+];
+// "Phân quyền" chỉ Owner mới thấy/truy cập được.
+const OWNER_ONLY_NAV = [
   { ic:'shield', label:'Phân quyền',     path:'/mgr/roles' },
 ];
 
@@ -32,7 +36,9 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout } = useStore();
-  const nav = role === 'emp' ? EMP_NAV : MGR_NAV;
+  const nav = role === 'emp' ? EMP_NAV
+    : currentUser?.role === ROLES.OWNER ? [...MGR_NAV_BASE, ...OWNER_ONLY_NAV]
+    : MGR_NAV_BASE;
   const active = getActiveIdx(nav, location.pathname);
   const pendingCount = 0;
 
@@ -41,7 +47,7 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
     navigate('/');
   };
 
-  const roleTxt = role === 'emp' ? 'Nhân viên' : 'Quản lý';
+  const roleTxt = role === 'emp' ? 'Nhân viên' : ROLE_LABEL[currentUser?.role] || 'Supervisor';
 
   return (
     <div style={{ width:'100vw', height:'100vh', display:'flex', background: W.paper, overflow:'hidden',

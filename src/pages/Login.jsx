@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { W, Card, H, T, Btn, Ico } from '../design-system'
 import { useStore } from '../store'
+import { homePathFor } from '../roles'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -18,7 +19,7 @@ export default function Login() {
   // Already logged in → redirect
   useEffect(() => {
     if (currentUser) {
-      navigate(currentUser.role === 'manager' ? '/mgr/stats' : '/emp/roadmap', { replace: true })
+      navigate(homePathFor(currentUser.role), { replace: true })
     }
   }, [currentUser])
 

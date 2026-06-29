@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './store'
 import { W } from './design-system'
+import { ROLES, isStaff, homePathFor } from './roles'
 
 import Login from './pages/Login'
 import Roadmap from './pages/employee/Roadmap'
@@ -19,8 +20,10 @@ import Training from './pages/manager/Training'
 import MgrDocuments from './pages/manager/Documents'
 import Roles from './pages/manager/Roles'
 
-function Guard({ role, children }) {
+// `allow` is either a single role string or an array of allowed roles.
+function Guard({ allow, children }) {
   const { currentUser, initialized } = useStore()
+  const allowed = Array.isArray(allow) ? allow : [allow]
 
   if (!initialized) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
@@ -29,8 +32,8 @@ function Guard({ role, children }) {
     </div>
   )
   if (!currentUser) return <Navigate to="/" replace />
-  if (currentUser.role !== role) {
-    return <Navigate to={currentUser.role === 'manager' ? '/mgr/stats' : '/emp/roadmap'} replace />
+  if (!allowed.includes(currentUser.role)) {
+    return <Navigate to={homePathFor(currentUser.role)} replace />
   }
   return children
 }
@@ -42,24 +45,25 @@ export default function App() {
         <Route path="/" element={<Login />} />
 
         <Route path="/emp" element={<Navigate to="/emp/roadmap" replace />} />
-        <Route path="/emp/progress"   element={<Guard role="employee"><Progress /></Guard>} />
-        <Route path="/emp/roadmap"    element={<Guard role="employee"><Roadmap /></Guard>} />
-        <Route path="/emp/task/:id"   element={<Guard role="employee"><TaskDetail /></Guard>} />
-        <Route path="/emp/submit"     element={<Guard role="employee"><Submissions /></Guard>} />
-        <Route path="/emp/submit/:id" element={<Guard role="employee"><Submit /></Guard>} />
-        <Route path="/emp/schedule"   element={<Guard role="employee"><Schedule /></Guard>} />
-        <Route path="/emp/documents" element={<Guard role="employee"><EmpDocuments /></Guard>} />
+        <Route path="/emp/progress"   element={<Guard allow={ROLES.EMPLOYEE}><Progress /></Guard>} />
+        <Route path="/emp/roadmap"    element={<Guard allow={ROLES.EMPLOYEE}><Roadmap /></Guard>} />
+        <Route path="/emp/task/:id"   element={<Guard allow={ROLES.EMPLOYEE}><TaskDetail /></Guard>} />
+        <Route path="/emp/submit"     element={<Guard allow={ROLES.EMPLOYEE}><Submissions /></Guard>} />
+        <Route path="/emp/submit/:id" element={<Guard allow={ROLES.EMPLOYEE}><Submit /></Guard>} />
+        <Route path="/emp/schedule"   element={<Guard allow={ROLES.EMPLOYEE}><Schedule /></Guard>} />
+        <Route path="/emp/documents" element={<Guard allow={ROLES.EMPLOYEE}><EmpDocuments /></Guard>} />
 
+        {/* Owner và Supervisor cùng dùng khu vực /mgr; trang Phân quyền chỉ Owner truy cập được. */}
         <Route path="/mgr" element={<Navigate to="/mgr/stats" replace />} />
-        <Route path="/mgr/stats"        element={<Guard role="manager"><Stats /></Guard>} />
-        <Route path="/mgr/matrix"       element={<Guard role="manager"><Matrix /></Guard>} />
-        <Route path="/mgr/queue"        element={<Guard role="manager"><Queue /></Guard>} />
-        <Route path="/mgr/queue/:subId" element={<Guard role="manager"><Queue /></Guard>} />
-        <Route path="/mgr/employees"    element={<Guard role="manager"><Employees /></Guard>} />
-        <Route path="/mgr/employee/:id" element={<Guard role="manager"><Profile /></Guard>} />
-        <Route path="/mgr/training"     element={<Guard role="manager"><Training /></Guard>} />
-        <Route path="/mgr/documents"    element={<Guard role="manager"><MgrDocuments /></Guard>} />
-        <Route path="/mgr/roles"        element={<Guard role="manager"><Roles /></Guard>} />
+        <Route path="/mgr/stats"        element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Stats /></Guard>} />
+        <Route path="/mgr/matrix"       element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Matrix /></Guard>} />
+        <Route path="/mgr/queue"        element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Queue /></Guard>} />
+        <Route path="/mgr/queue/:subId" element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Queue /></Guard>} />
+        <Route path="/mgr/employees"    element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Employees /></Guard>} />
+        <Route path="/mgr/employee/:id" element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Profile /></Guard>} />
+        <Route path="/mgr/training"     element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><Training /></Guard>} />
+        <Route path="/mgr/documents"    element={<Guard allow={[ROLES.OWNER, ROLES.SUPERVISOR]}><MgrDocuments /></Guard>} />
+        <Route path="/mgr/roles"        element={<Guard allow={ROLES.OWNER}><Roles /></Guard>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
