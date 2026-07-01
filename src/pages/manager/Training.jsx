@@ -3,8 +3,10 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Ico, Skel } from '../../design-system'
 import { fetchTaskResources, saveTaskVideos } from '../../store'
 import { TASKS, WEEKS, TASK_CONTENT } from '../../data'
+import { useT } from '../../i18n'
 
 export default function Training() {
+  const t = useT()
   const [resources, setResources] = useState({})
   const [loading, setLoading]     = useState(true)
   const [selected, setSelected]   = useState('01')
@@ -52,7 +54,7 @@ export default function Training() {
   const allWeeks = [...WEEKS, { wk: 'Capstone', taskIds: ['F'] }]
 
   return (
-    <Shell role="mgr" title="Nội dung đào tạo" sub="Thêm video gợi ý cho từng task — nhân viên sẽ thấy ngay">
+    <Shell role="mgr" title={t('Nội dung đào tạo')} sub={t('Thêm video gợi ý cho từng task — nhân viên sẽ thấy ngay')}>
       <div style={{ display:'flex', gap:16, height:'100%' }}>
 
         {/* Left: task list */}
@@ -104,11 +106,11 @@ export default function Training() {
             <div style={{ flex:1 }}>
               <H size={15}>{task?.name}</H>
               <T size={12} c={W.ink3}>
-                {videos.length} video {usingDefaults ? '(gợi ý mặc định)' : 'đã lưu'}
+                {videos.length} video {usingDefaults ? t('(gợi ý mặc định)') : t('đã lưu')}
               </T>
             </div>
             <Btn kind={saved ? 'soft' : 'solid'} size="sm" disabled={saving} onClick={handleSave}>
-              {saving ? 'Đang lưu…' : saved ? '✓ Đã lưu' : usingDefaults ? 'Áp dụng & lưu' : 'Lưu thay đổi'}
+              {saving ? t('Đang lưu…') : saved ? t('✓ Đã lưu') : usingDefaults ? t('Áp dụng & lưu') : t('Lưu thay đổi')}
             </Btn>
           </div>
 
@@ -116,30 +118,30 @@ export default function Training() {
             <Card pad={11} fill={W.accSoft} line="transparent" style={{ display:'flex', gap:9, alignItems:'flex-start' }}>
               <Ico name="play" s={14} c={W.acc} />
               <T size={12} c={W.ink2}>
-                Đây là bộ video gợi ý mặc định đã tuyển sẵn — học viên đã thấy chúng. Bạn có thể xoá/thêm rồi bấm <b>Áp dụng &amp; lưu</b> để chỉnh theo ý mình.
+                {t('Đây là bộ video gợi ý mặc định đã tuyển sẵn — học viên đã thấy chúng. Bạn có thể xoá/thêm rồi bấm')} <b>{t('Áp dụng & lưu')}</b> {t('để chỉnh theo ý mình.')}
               </T>
             </Card>
           )}
 
           {/* Add new */}
           <Card pad={14} fill={W.panel} line={W.line2}>
-            <T size={11} mono c={W.ink3} mb={10}>THÊM VIDEO MỚI</T>
+            <T size={11} mono c={W.ink3} mb={10}>{t('THÊM VIDEO MỚI')}</T>
             <div style={{ display:'flex', gap:8 }}>
               <input
-                placeholder="Dán URL YouTube hoặc link video..."
+                placeholder={t('Dán URL YouTube hoặc link video...')}
                 value={newUrl} onChange={e => setNewUrl(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAdd()}
                 style={{ flex:2, border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px',
                   fontSize:13, fontFamily:W.font, outline:'none', color:W.ink, background:'#fff' }}
               />
               <input
-                placeholder="Tiêu đề (tuỳ chọn)"
+                placeholder={t('Tiêu đề (tuỳ chọn)')}
                 value={newTitle} onChange={e => setNewTitle(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleAdd()}
                 style={{ flex:1, border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px',
                   fontSize:13, fontFamily:W.font, outline:'none', color:W.ink, background:'#fff' }}
               />
-              <Btn kind="solid" size="sm" icon={<Ico name="plus" s={13} c="#fff"/>} onClick={handleAdd}>Thêm</Btn>
+              <Btn kind="solid" size="sm" icon={<Ico name="plus" s={13} c="#fff"/>} onClick={handleAdd}>{t('Thêm')}</Btn>
             </div>
           </Card>
 
@@ -148,7 +150,7 @@ export default function Training() {
             <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center',
               justifyContent:'center', gap:10, color:W.ink3 }}>
               <Ico name="play" s={32} c={W.ink4} />
-              <T size={13}>Chưa có video nào. Thêm URL bên trên rồi bấm Lưu.</T>
+              <T size={13}>{t('Chưa có video nào. Thêm URL bên trên rồi bấm Lưu.')}</T>
             </div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:8, flex:1, overflowY:'auto' }}>

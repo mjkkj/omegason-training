@@ -6,17 +6,18 @@ import { useStore, fetchMySubmissions, fetchTaskVideos } from '../../store'
 import SubmissionView from '../../components/SubmissionView'
 import { TASKS, TASK_CONTENT, calcDeadline, moduleLabel } from '../../data'
 import { getChecklist, parseReview, moduleScore } from '../../checklist'
+import { useT } from '../../i18n'
 
 function getYtId(url) {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   return m ? m[1] : null
 }
 
-function daysLeft(deadline) {
+function daysLeft(deadline, t) {
   const d = Math.ceil((new Date(deadline) - new Date()) / 86400000)
-  if (d < 0)  return { txt:`Trễ ${Math.abs(d)} ngày`, tone:'late' }
-  if (d === 0) return { txt:'Hôm nay', tone:'late' }
-  return { txt:`Còn ${d} ngày`, tone: d <= 2 ? 'late' : 'acc' }
+  if (d < 0)  return { txt:`${t('Trễ ')}${Math.abs(d)}${t(' ngày')}`, tone:'late' }
+  if (d === 0) return { txt:t('Hôm nay'), tone:'late' }
+  return { txt:`${t('Còn ')}${d}${t(' ngày')}`, tone: d <= 2 ? 'late' : 'acc' }
 }
 
 function formatDeadline(dl) {
@@ -28,6 +29,7 @@ export default function TaskDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useStore()
+  const t = useT()
   const [sub, setSub]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [taskVideos, setTaskVideos] = useState(null)
@@ -47,11 +49,11 @@ export default function TaskDetail() {
     })
   }, [currentUser?.id, id])
 
-  if (!task) return <div style={{ padding:32 }}>Không tìm thấy task.</div>
+  if (!task) return <div style={{ padding:32 }}>{t('Không tìm thấy task.')}</div>
 
-  const dl  = daysLeft(calcDeadline(task, currentUser?.start_date))
+  const dl  = daysLeft(calcDeadline(task, currentUser?.start_date), t)
   const stTone = sub?.status === 'graded' ? 'done' : sub?.status === 'pending' ? 'warn' : sub?.status === 'revision' ? 'late' : dl.tone === 'late' ? 'late' : 'neutral'
-  const stTxt  = sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm'
+  const stTxt  = t(sub?.status === 'graded' ? 'Đã chấm' : sub?.status === 'pending' ? 'Chờ chấm' : sub?.status === 'revision' ? 'Cần sửa lại' : dl.tone === 'late' ? 'Trễ hạn' : 'Chưa làm')
 
   // Video gợi ý: ưu tiên link quản lý thêm trên Supabase; nếu chưa có thì
   // dùng bộ video mặc định đã tuyển chọn sẵn trong TASK_CONTENT.
@@ -65,9 +67,9 @@ export default function TaskDetail() {
 
   return (
     <Shell role="emp" title={`${moduleLabel(task)} · ${task.name}`}
-      sub={task.final ? 'Capstone — dự án tổng kết' : 'Full-Stack Marketer'}
+      sub={t(task.final ? 'Capstone — dự án tổng kết' : 'Full-Stack Marketer')}
       pad={0} body={W.paper}
-      actions={<Btn kind="ghost" size="sm" onClick={() => navigate('/emp/roadmap')}>← Lộ trình</Btn>}>
+      actions={<Btn kind="ghost" size="sm" onClick={() => navigate('/emp/roadmap')}>{t('← Lộ trình')}</Btn>}>
 
       <div style={{ height:'100%', display:'flex', flexDirection:'column' }}>
         {/* hero */}
@@ -81,13 +83,13 @@ export default function TaskDetail() {
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               <Tag tone={stTone}>{stTxt}</Tag>
               <Tag tone="line">{moduleLabel(task)}</Tag>
-              {task.key && <Tag tone="warn">Module trọng tâm</Tag>}
-              <Tag tone="line">~{task.hours} giờ</Tag>
+              {task.key && <Tag tone="warn">{t('Module trọng tâm')}</Tag>}
+              <Tag tone="line">~{task.hours} {t('giờ')}</Tag>
             </div>
           </div>
           <Card pad={14} fill={dl.tone === 'late' ? W.lateSoft : W.accSoft} line="transparent"
             style={{ textAlign:'center', minWidth:130, flexShrink:0 }}>
-            <T size={10.5} mono c={dl.tone === 'late' ? W.late : W.acc} mb={4}>HẠN NỘP</T>
+            <T size={10.5} mono c={dl.tone === 'late' ? W.late : W.acc} mb={4}>{t('HẠN NỘP')}</T>
             <div style={{ fontSize:22, fontWeight:800, color: dl.tone === 'late' ? W.late : W.ink, lineHeight:1 }}>{dl.txt}</div>
             <T size={10.5} c={W.ink2} style={{ marginTop:3 }}>{formatDeadline(calcDeadline(task, currentUser?.start_date))}</T>
           </Card>
@@ -98,7 +100,7 @@ export default function TaskDetail() {
 
           {/* CẦN NẮM */}
           <div>
-            <H size={14} mb={10} c={W.ink2}>CẦN NẮM</H>
+            <H size={14} mb={10} c={W.ink2}>{t('CẦN NẮM')}</H>
             <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
               {(content.learn || []).map((l, i) => <Tag key={i} tone="line">{l}</Tag>)}
             </div>
@@ -117,7 +119,7 @@ export default function TaskDetail() {
           {/* BÀI THỰC HÀNH */}
           {content.exercises?.length > 0 && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>BÀI THỰC HÀNH</H>
+              <H size={14} mb={10} c={W.ink2}>{t('BÀI THỰC HÀNH')}</H>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {content.exercises.map((ex, i) => (
                   <Card key={i} pad={14} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
@@ -140,7 +142,7 @@ export default function TaskDetail() {
           {/* VIDEO GỢI Ý */}
           {displayVideos !== null && displayVideos.length > 0 && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>VIDEO GỢI Ý</H>
+              <H size={14} mb={10} c={W.ink2}>{t('VIDEO GỢI Ý')}</H>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
                 {displayVideos.map((v, i) => {
                   const ytId = getYtId(v.url)
@@ -182,9 +184,9 @@ export default function TaskDetail() {
           {/* PROMPT MẪU — chỉ task có sẵn prompt */}
           {content.prompt && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>PROMPT MẪU — DÙNG NGAY VỚI CHATGPT</H>
+              <H size={14} mb={10} c={W.ink2}>{t('PROMPT MẪU — DÙNG NGAY VỚI CHATGPT')}</H>
               <Card pad={14} fill={W.panel} line={W.line2}>
-                <T size={11} mono c={W.ink3} mb={8}>DÁN VÀO CHATGPT ĐỂ TẠO CHECKLIST</T>
+                <T size={11} mono c={W.ink3} mb={8}>{t('DÁN VÀO CHATGPT ĐỂ TẠO CHECKLIST')}</T>
                 <div style={{ fontFamily: W.mono, fontSize:12.5, color:W.ink, lineHeight:1.7,
                   background:'#fff', borderRadius:6, padding:'12px 14px', border:`1px solid ${W.line2}`,
                   whiteSpace:'pre-wrap' }}>{content.prompt}</div>
@@ -196,7 +198,7 @@ export default function TaskDetail() {
           {checklistItems.length > 0 && (
             <div>
               <H size={14} mb={10} c={W.ink2}>
-                CHECKLIST CẦN ĐẠT
+                {t('CHECKLIST CẦN ĐẠT')}
                 {reviewChecked != null && (
                   <span style={{ fontSize:12, fontWeight:700, color:W.done, marginLeft:8, fontFamily:W.mono }}>
                     {moduleScore(sub, id)}% · {reviewChecked.length}/{checklistItems.length}
@@ -223,7 +225,7 @@ export default function TaskDetail() {
           {/* BẪY THƯỜNG GẶP */}
           {content.traps?.length > 0 && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>BẪY THƯỜNG GẶP</H>
+              <H size={14} mb={10} c={W.ink2}>{t('BẪY THƯỜNG GẶP')}</H>
               <Card pad={14} fill={W.lateSoft} line="transparent">
                 <div style={{ display:'flex', flexDirection:'column', gap:9 }}>
                   {content.traps.map((t, i) => (
@@ -239,25 +241,25 @@ export default function TaskDetail() {
 
           {/* ĐẦU RA CẦN NỘP */}
           <div>
-            <H size={14} mb={10} c={W.ink2}>ĐẦU RA CẦN NỘP</H>
+            <H size={14} mb={10} c={W.ink2}>{t('ĐẦU RA CẦN NỘP')}</H>
             <Card pad={16}>
               <div style={{ display:'flex', alignItems:'flex-start', gap:12, marginBottom:12 }}>
                 <Ico name="doc" s={18} c={W.acc} />
                 <div style={{ flex:1 }}>
-                  <T size={10.5} mono c={W.ink3} mb={3}>ĐỊNH DẠNG GỢI Ý</T>
+                  <T size={10.5} mono c={W.ink3} mb={3}>{t('ĐỊNH DẠNG GỢI Ý')}</T>
                   <div style={{ fontSize:13.5, fontWeight:700, color:W.ink }}>{task.file}</div>
                 </div>
               </div>
               <T size={13} c={W.ink2} style={{ lineHeight:1.7 }}>{content.description}</T>
               <T size={11.5} c={W.ink4} style={{ marginTop:10, lineHeight:1.5 }}>
-                Nộp linh hoạt theo định dạng phù hợp: văn bản viết trực tiếp, ảnh chụp, tệp đính kèm (PDF/video/.html…) hoặc link.
+                {t('Nộp linh hoạt theo định dạng phù hợp: văn bản viết trực tiếp, ảnh chụp, tệp đính kèm (PDF/video/.html…) hoặc link.')}
               </T>
             </Card>
           </div>
 
           {!loading && sub && (
             <div>
-              <H size={14} mb={10} c={W.ink2}>BÀI ĐÃ NỘP</H>
+              <H size={14} mb={10} c={W.ink2}>{t('BÀI ĐÃ NỘP')}</H>
               <Card pad={14}
                 fill={sub.status === 'graded' ? W.doneSoft : sub.status === 'pending' ? W.accSoft : W.warnSoft}
                 line="transparent">
@@ -266,8 +268,8 @@ export default function TaskDetail() {
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:700, fontFamily: W.mono }}>{sub.file_name}</div>
                     <T size={11.5} style={{ marginTop:2 }}>
-                      Nộp {new Date(sub.submitted_at).toLocaleString('vi-VN')}
-                      {sub.status === 'graded' && ' · đã chấm'}
+                      {t('Nộp')} {new Date(sub.submitted_at).toLocaleString('vi-VN')}
+                      {sub.status === 'graded' && ` · ${t('đã chấm')}`}
                     </T>
                   </div>
                   {sub.status === 'graded' && (
@@ -280,7 +282,7 @@ export default function TaskDetail() {
                 </div>
                 {parseReview(sub).comment && (
                   <div style={{ marginTop:12, paddingTop:12, borderTop:`1px solid rgba(0,0,0,.08)` }}>
-                    <T size={11} mono c={W.ink3} mb={4}>NHẬN XÉT</T>
+                    <T size={11} mono c={W.ink3} mb={4}>{t('NHẬN XÉT')}</T>
                     <T size={12.5}>{parseReview(sub).comment}</T>
                   </div>
                 )}
@@ -292,10 +294,10 @@ export default function TaskDetail() {
         <div style={{ flexShrink:0, borderTop:`1px solid ${W.line2}`, background: W.paper,
           padding:'14px 28px', display:'flex', alignItems:'center', gap:12 }}>
           <div style={{ flex:1 }} />
-          {sub?.status === 'pending' && <Tag tone="warn">Đang chờ chấm</Tag>}
+          {sub?.status === 'pending' && <Tag tone="warn">{t('Đang chờ chấm')}</Tag>}
           <Link to={`/emp/submit/${id}`}>
             <Btn kind="solid" size="md" icon={<Ico name="up" s={15} c="#fff"/>}>
-              {sub ? 'Sửa / nộp lại' : 'Nộp báo cáo'}
+              {sub ? t('Sửa / nộp lại') : t('Nộp báo cáo')}
             </Btn>
           </Link>
         </div>

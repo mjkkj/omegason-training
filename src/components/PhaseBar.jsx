@@ -1,9 +1,11 @@
 import { W, Card, T, Bar } from '../design-system'
 import { SCORE_PHASES, phaseScore, overallScore } from '../checklist'
+import { useT } from '../i18n'
 
 // Thanh tiến độ điểm checklist: 1 thanh tổng + 3 thanh phase con.
 // subByTaskId: { taskId: submission }
 export default function PhaseBar({ subByTaskId, compact = false }) {
+  const t = useT()
   const overall = overallScore(subByTaskId)
   const tone = overall === 100 ? W.done : W.acc
 
@@ -19,7 +21,7 @@ export default function PhaseBar({ subByTaskId, compact = false }) {
   return (
     <Card pad={16}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-        <T size={11} mono c={W.ink3}>TIẾN ĐỘ CHECKLIST</T>
+        <T size={11} mono c={W.ink3}>{t('TIẾN ĐỘ CHECKLIST')}</T>
         <span style={{ fontSize: 20, fontWeight: 800, color: tone, fontFamily: W.font }}>{overall}%</span>
       </div>
       <Bar pct={overall} h={9} c={tone} style={{ marginBottom: 14 }} />

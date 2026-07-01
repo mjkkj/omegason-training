@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { W, Card, H, T, Btn, Ico } from '../design-system'
 import { useStore } from '../store'
+import { useT } from '../i18n'
 
 export default function Login() {
   const navigate = useNavigate()
   const { login, signup, currentUser } = useStore()
+  const t = useT()
 
   const [mode, setMode] = useState('login') // 'login' | 'signup'
   const [email, setEmail]       = useState('')
@@ -32,15 +34,15 @@ export default function Login() {
         // currentUser is set inside login(); useEffect will redirect
         return
       } else {
-        if (!name.trim()) throw new Error('Vui lòng nhập họ tên')
+        if (!name.trim()) throw new Error(t('Vui lòng nhập họ tên'))
         await signup(email, password, name.trim())
         setDone(true)
       }
     } catch (err) {
-      const msg = err.message || 'Có lỗi xảy ra'
-      if (msg.includes('Invalid login')) setError('Email hoặc mật khẩu không đúng')
-      else if (msg.includes('already registered')) setError('Email này đã được đăng ký')
-      else if (msg.includes('Password should')) setError('Mật khẩu phải ít nhất 6 ký tự')
+      const msg = err.message || t('Có lỗi xảy ra')
+      if (msg.includes('Invalid login')) setError(t('Email hoặc mật khẩu không đúng'))
+      else if (msg.includes('already registered')) setError(t('Email này đã được đăng ký'))
+      else if (msg.includes('Password should')) setError(t('Mật khẩu phải ít nhất 6 ký tự'))
       else setError(msg)
     } finally {
       setLoading(false)
@@ -56,12 +58,12 @@ export default function Login() {
           margin:'0 auto 16px', display:'flex', alignItems:'center', justifyContent:'center' }}>
           <Ico name="check" s={28} c={W.done} sw={2.5} />
         </div>
-        <H size={20} mb={10}>Đăng ký thành công!</H>
+        <H size={20} mb={10}>{t('Đăng ký thành công!')}</H>
         <T size={13.5} mb={20}>
-          Kiểm tra hộp thư <b>{email}</b> để xác nhận tài khoản, sau đó quay lại đăng nhập.
+          {t('Kiểm tra hộp thư')} <b>{email}</b> {t('để xác nhận tài khoản, sau đó quay lại đăng nhập.')}
         </T>
         <Btn kind="solid" size="md" full onClick={() => { setMode('login'); setDone(false) }}>
-          Đăng nhập
+          {t('Đăng nhập')}
         </Btn>
       </Card>
     </div>
@@ -79,7 +81,7 @@ export default function Login() {
             display:'inline-flex', alignItems:'center', justifyContent:'center', fontSize:24, fontWeight:800, marginBottom:12 }}>O</div>
           <H size={22} weight={700} style={{ textAlign:'center', marginBottom:4 }}>Omegason Training</H>
           <T size={13} style={{ textAlign:'center' }}>
-            {mode === 'login' ? 'Đăng nhập để tiếp tục' : 'Tạo tài khoản nhân viên mới'}
+            {mode === 'login' ? t('Đăng nhập để tiếp tục') : t('Tạo tài khoản nhân viên mới')}
           </T>
         </div>
 
@@ -93,7 +95,7 @@ export default function Login() {
                   color: mode === m ? W.acc : W.ink2,
                   borderBottom: mode === m ? `2px solid ${W.acc}` : '2px solid transparent',
                   transition:'all .15s' }}>
-                {label}
+                {t(label)}
               </div>
             ))}
           </div>
@@ -101,7 +103,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} style={{ padding:24, display:'flex', flexDirection:'column', gap:16 }}>
             {mode === 'signup' && (
               <div>
-                <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>Họ và tên</div>
+                <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>{t('Họ và tên')}</div>
                 <input
                   type="text" required placeholder="Nguyễn Văn An"
                   value={name} onChange={e => setName(e.target.value)}
@@ -111,7 +113,7 @@ export default function Login() {
             )}
 
             <div>
-              <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>Email</div>
+              <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>{t('Email')}</div>
               <input
                 type="email" required placeholder="ten@omegason.vn"
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -120,9 +122,9 @@ export default function Login() {
             </div>
 
             <div>
-              <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>Mật khẩu</div>
+              <div style={{ fontSize:12, fontWeight:600, color: W.ink2, marginBottom:6 }}>{t('Mật khẩu')}</div>
               <input
-                type="password" required placeholder={mode === 'signup' ? 'Ít nhất 6 ký tự' : '••••••••'}
+                type="password" required placeholder={mode === 'signup' ? t('Ít nhất 6 ký tự') : '••••••••'}
                 value={password} onChange={e => setPassword(e.target.value)}
                 style={inputStyle}
               />
@@ -137,15 +139,15 @@ export default function Login() {
 
             <Btn kind="solid" size="lg" full disabled={loading} style={{ marginTop:4 }}
               onClick={handleSubmit}>
-              {loading ? 'Đang xử lý…' : mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+              {loading ? t('Đang xử lý…') : mode === 'login' ? t('Đăng nhập') : t('Tạo tài khoản')}
             </Btn>
           </form>
         </Card>
 
         {mode === 'login' && (
           <T size={11.5} c={W.ink3} style={{ textAlign:'center', marginTop:14 }}>
-            Chưa có tài khoản? Bấm <b style={{ cursor:'pointer', color: W.acc }}
-              onClick={() => { setMode('signup'); setError(null) }}>Đăng ký</b> hoặc liên hệ quản lý.
+            {t('Chưa có tài khoản? Bấm')} <b style={{ cursor:'pointer', color: W.acc }}
+              onClick={() => { setMode('signup'); setError(null) }}>{t('Đăng ký')}</b> {t('hoặc liên hệ quản lý.')}
           </T>
         )}
       </div>

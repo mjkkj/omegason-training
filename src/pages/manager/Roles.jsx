@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Stat, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllUsers, updateUserRole, useStore } from '../../store'
+import { useT } from '../../i18n'
 
 export default function Roles() {
   const { currentUser } = useStore()
+  const t = useT()
   const [users, setUsers]     = useState([])
   const [loading, setLoading] = useState(true)
   const [q, setQ]             = useState('')
@@ -25,9 +27,9 @@ export default function Roles() {
       setConfirmId(null)
     } catch (e) {
       if (e.message === 'RLS_BLOCKED') {
-        setErr('Cập nhật bị Supabase RLS chặn (0 dòng thay đổi). Hãy mở Supabase → SQL Editor và chạy file "supabase-roles.sql" trong repo để thêm policy cho phép quản lý đổi quyền, rồi thử lại.')
+        setErr(t('Cập nhật bị Supabase RLS chặn (0 dòng thay đổi). Hãy mở Supabase → SQL Editor và chạy file "supabase-roles.sql" trong repo để thêm policy cho phép quản lý đổi quyền, rồi thử lại.'))
       } else {
-        setErr(`Không đổi được quyền: ${e.message || e}`)
+        setErr(`${t('Không đổi được quyền:')} ${e.message || e}`)
       }
     } finally {
       setBusyId(null)
@@ -43,12 +45,12 @@ export default function Roles() {
   )
 
   return (
-    <Shell role="mgr" title="Phân quyền" sub="Nâng cấp tài khoản đã đăng ký lên quản lý hoặc hạ về nhân viên">
+    <Shell role="mgr" title={t('Phân quyền')} sub={t('Nâng cấp tài khoản đã đăng ký lên quản lý hoặc hạ về nhân viên')}>
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         <div style={{ display:'flex', gap:12 }}>
-          <Stat n={users.length}      label="Tổng tài khoản" />
-          <Stat n={managers.length}   label="Quản lý"   tone={W.acc} />
-          <Stat n={employees.length}  label="Nhân viên" tone={W.done} />
+          <Stat n={users.length}      label={t('Tổng tài khoản')} />
+          <Stat n={managers.length}   label={t('Quản lý')}   tone={W.acc} />
+          <Stat n={employees.length}  label={t('Nhân viên')} tone={W.done} />
         </div>
 
         {err && (
@@ -60,7 +62,7 @@ export default function Roles() {
         <Card pad={12} style={{ display:'flex', alignItems:'center', gap:10 }}>
           <Ico name="search" s={15} c={W.ink3} />
           <input value={q} onChange={e => setQ(e.target.value)}
-            placeholder="Tìm theo tên hoặc email…"
+            placeholder={t('Tìm theo tên hoặc email…')}
             style={{ flex:1, border:'none', outline:'none', fontSize:13, color: W.ink,
               fontFamily: W.font, background:'transparent' }} />
         </Card>
@@ -70,14 +72,14 @@ export default function Roles() {
             <div style={{ display:'flex', alignItems:'center', padding:'10px 16px', background: W.panel,
               borderBottom:`1px solid ${W.line2}`, fontSize:10.5, fontWeight:700, color: W.ink3,
               letterSpacing:0.3, fontFamily: W.mono }}>
-              <div style={{ flex:1 }}>TÀI KHOẢN</div>
-              <div style={{ width:120 }}>QUYỀN HIỆN TẠI</div>
-              <div style={{ width:210, textAlign:'right' }}>THAO TÁC</div>
+              <div style={{ flex:1 }}>{t('TÀI KHOẢN')}</div>
+              <div style={{ width:120 }}>{t('QUYỀN HIỆN TẠI')}</div>
+              <div style={{ width:210, textAlign:'right' }}>{t('THAO TÁC')}</div>
             </div>
 
             {rows.length === 0 && (
               <div style={{ padding:'40px 16px', textAlign:'center', color: W.ink3 }}>
-                Không tìm thấy tài khoản nào.
+                {t('Không tìm thấy tài khoản nào.')}
               </div>
             )}
 
@@ -93,8 +95,8 @@ export default function Roles() {
                     <Avatar s={36} txt={u.initials || '?'} />
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:13.5, fontWeight:600, display:'flex', alignItems:'center', gap:7 }}>
-                        {u.name || 'Người dùng'}
-                        {isSelf && <Tag tone="line">Bạn</Tag>}
+                        {u.name || t('Người dùng')}
+                        {isSelf && <Tag tone="line">{t('Bạn')}</Tag>}
                       </div>
                       <div style={{ fontSize:11.5, color: W.ink3, overflow:'hidden',
                         textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email || '—'}</div>
@@ -102,27 +104,27 @@ export default function Roles() {
                   </div>
 
                   <div style={{ width:120 }}>
-                    {isMgr ? <Tag tone="acc">Quản lý</Tag> : <Tag tone="done">Nhân viên</Tag>}
+                    {isMgr ? <Tag tone="acc">{t('Quản lý')}</Tag> : <Tag tone="done">{t('Nhân viên')}</Tag>}
                   </div>
 
                   <div style={{ width:210, display:'flex', justifyContent:'flex-end', gap:8 }}>
                     {isSelf ? (
-                      <T size={11.5} c={W.ink4}>Không thể tự đổi quyền</T>
+                      <T size={11.5} c={W.ink4}>{t('Không thể tự đổi quyền')}</T>
                     ) : asking ? (
                       <>
                         <Btn kind="ghost" size="sm" disabled={busy}
-                          onClick={() => setConfirmId(null)}>Hủy</Btn>
+                          onClick={() => setConfirmId(null)}>{t('Hủy')}</Btn>
                         <Btn kind={isMgr ? 'danger' : 'solid'} size="sm" disabled={busy}
                           onClick={() => changeRole(u, isMgr ? 'employee' : 'manager')}>
-                          {busy ? 'Đang lưu…' : isMgr ? 'Xác nhận hạ quyền' : 'Xác nhận nâng quyền'}
+                          {busy ? t('Đang lưu…') : isMgr ? t('Xác nhận hạ quyền') : t('Xác nhận nâng quyền')}
                         </Btn>
                       </>
                     ) : isMgr ? (
                       <Btn kind="ghost" size="sm" icon={<Ico name="user" s={14} c={W.ink2} />}
-                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Hạ về nhân viên</Btn>
+                        onClick={() => { setErr(''); setConfirmId(u.id) }}>{t('Hạ về nhân viên')}</Btn>
                     ) : (
                       <Btn kind="soft" size="sm" icon={<Ico name="shield" s={14} c={W.acc} />}
-                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Nâng lên quản lý</Btn>
+                        onClick={() => { setErr(''); setConfirmId(u.id) }}>{t('Nâng lên quản lý')}</Btn>
                     )}
                   </div>
                 </div>
@@ -132,7 +134,7 @@ export default function Roles() {
         )}
 
         <T size={11.5} c={W.ink3}>
-          Quản lý có toàn quyền chấm bài, xem tiến độ và quản trị nội dung đào tạo. Hãy cân nhắc khi nâng quyền.
+          {t('Quản lý có toàn quyền chấm bài, xem tiến độ và quản trị nội dung đào tạo. Hãy cân nhắc khi nâng quyền.')}
         </T>
       </div>
     </Shell>

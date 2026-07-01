@@ -35,6 +35,12 @@ function deriveInitials(name) {
 export const useStore = create((set, get) => ({
   currentUser: null,
   initialized: false,
+  language: localStorage.getItem('lang') || 'vi',
+
+  setLanguage: (lang) => {
+    localStorage.setItem('lang', lang)
+    set({ language: lang })
+  },
 
   initialize: async () => {
     const { data: { session } } = await supabase.auth.getSession()

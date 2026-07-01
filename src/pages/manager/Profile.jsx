@@ -7,6 +7,7 @@ import { TASKS, calcDeadline } from '../../data'
 import { moduleScore, indexByTask, overallScore } from '../../checklist'
 import PhaseBar from '../../components/PhaseBar'
 import { supabase } from '../../supabase'
+import { useT } from '../../i18n'
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -17,6 +18,7 @@ function fmtDate(iso) {
 export default function Profile() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const t = useT()
   const [emp, setEmp]       = useState(null)
   const [subs, setSubs]     = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,11 +35,11 @@ export default function Profile() {
   }, [id])
 
   if (loading) return (
-    <Shell role="mgr" title="Hồ sơ nhân viên" body={W.paper} pad={24}>
+    <Shell role="mgr" title={t('Hồ sơ nhân viên')} body={W.paper} pad={24}>
       <Skel lines={6} gap={16} />
     </Shell>
   )
-  if (!emp) return <div style={{ padding:32 }}>Không tìm thấy nhân viên.</div>
+  if (!emp) return <div style={{ padding:32 }}>{t('Không tìm thấy nhân viên.')}</div>
 
   const graded  = subs.filter(s => s.status === 'graded')
   const pending = subs.filter(s => s.status === 'pending')
@@ -55,9 +57,9 @@ export default function Profile() {
   })
 
   return (
-    <Shell role="mgr" title="Hồ sơ nhân viên" sub={`${emp.name}`}
+    <Shell role="mgr" title={t('Hồ sơ nhân viên')} sub={`${emp.name}`}
       pad={0} body={W.paper}
-      actions={<Btn kind="ghost" size="sm" onClick={() => navigate('/mgr/employees')}>← Danh sách</Btn>}>
+      actions={<Btn kind="ghost" size="sm" onClick={() => navigate('/mgr/employees')}>{t('← Danh sách')}</Btn>}>
 
       <div style={{ height:'100%', display:'flex', flexDirection:'column' }}>
         <div style={{ padding:'22px 28px 0', borderBottom:`1px solid ${W.line2}` }}>
@@ -66,7 +68,7 @@ export default function Profile() {
             <div style={{ flex:1 }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
                 <H size={20}>{emp.name}</H>
-                <Tag tone="acc">Đang đào tạo</Tag>
+                <Tag tone="acc">{t('Đang đào tạo')}</Tag>
               </div>
               <T size={12.5}>{emp.email}</T>
             </div>
@@ -74,14 +76,14 @@ export default function Profile() {
               {[[`${pct}%`,'Tiến độ'],[`${score}%`,'Checklist'],[`${onTime}/${graded.length}`,'Đúng hạn'],[pending.length,'Chờ chấm']].map(([n,l],i) => (
                 <div key={i}>
                   <div style={{ fontSize:20, fontWeight:800, color: W.ink }}>{n}</div>
-                  <div style={{ fontSize:11, color: W.ink3, marginTop:2 }}>{l}</div>
+                  <div style={{ fontSize:11, color: W.ink3, marginTop:2 }}>{t(l)}</div>
                 </div>
               ))}
             </div>
           </div>
           <div style={{ marginTop:18 }}>
             <div style={{ paddingBottom:12, fontSize:13.5, fontWeight:700, color: W.acc, borderBottom:`2px solid ${W.acc}`, display:'inline-block' }}>
-              Bài nộp & kết quả
+              {t('Bài nộp & kết quả')}
             </div>
           </div>
         </div>
@@ -91,9 +93,9 @@ export default function Profile() {
             <PhaseBar subByTaskId={subByTask} />
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', marginBottom:14 }}>
-            <H size={15}>Các bài đã nộp</H>
+            <H size={15}>{t('Các bài đã nộp')}</H>
             <span style={{ fontSize:11.5, color: W.ink3, fontFamily: W.mono }}>
-              {graded.length} đã chấm · {pending.length} chờ chấm
+              {graded.length}{t(' đã chấm · ')}{pending.length}{t(' chờ chấm')}
             </span>
           </div>
 
@@ -111,14 +113,14 @@ export default function Profile() {
                     {task.final && <Tag tone="acc"  style={{ fontSize:10 }}>CAPSTONE</Tag>}
                   </div>
                   <div style={{ fontSize:10.5, color: W.ink4, marginTop:2, fontFamily: W.mono }}>
-                    {sub ? `${sub.file_name} · nộp ${fmtDate(sub.submitted_at)}` : 'chưa nộp'}
+                    {sub ? `${sub.file_name} · ${t('nộp')} ${fmtDate(sub.submitted_at)}` : t('chưa nộp')}
                   </div>
                 </div>
                 {sub?.status==='graded'   && <Tag tone="done">{moduleScore(sub, task.id)}%</Tag>}
-                {sub?.status==='pending'  && <Tag tone="warn">Chờ chấm</Tag>}
-                {!sub && <Tag tone="neutral">Chưa nộp</Tag>}
+                {sub?.status==='pending'  && <Tag tone="warn">{t('Chờ chấm')}</Tag>}
+                {!sub && <Tag tone="neutral">{t('Chưa nộp')}</Tag>}
                 {sub?.status==='pending' && (
-                  <Link to={`/mgr/queue/${sub.id}`}><Btn kind="solid" size="sm">Chấm bài</Btn></Link>
+                  <Link to={`/mgr/queue/${sub.id}`}><Btn kind="solid" size="sm">{t('Chấm bài')}</Btn></Link>
                 )}
               </Card>
             ))}

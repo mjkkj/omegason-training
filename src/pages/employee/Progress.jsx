@@ -6,6 +6,7 @@ import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
 import { moduleScore, indexByTask, overallScore } from '../../checklist'
 import PhaseBar from '../../components/PhaseBar'
+import { useT } from '../../i18n'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -15,6 +16,7 @@ function formatDate(iso) {
 
 export default function Progress() {
   const { currentUser } = useStore()
+  const t = useT()
   const [subs, setSubs]     = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -35,24 +37,24 @@ export default function Progress() {
   }).length
 
   return (
-    <Shell role="emp" title="Tổng quan tiến độ" sub={currentUser?.name}
-      actions={<Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>Xem lịch</Btn></Link>}>
+    <Shell role="emp" title={t('Tổng quan tiến độ')} sub={currentUser?.name}
+      actions={<Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>{t('Xem lịch')}</Btn></Link>}>
       <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
         <div style={{ display:'flex', gap:12 }}>
-          <Stat n={graded.length}  label="Đã nộp & chấm"     sub={`trên ${total} task`} />
-          <Stat n={pending.length} label="Đang chờ chấm"     tone={pending.length ? W.warn : W.ink} />
-          <Stat n={`${score}%`}     label="Tiến độ checklist" tone={W.done} />
-          <Stat n={onTime}          label="Đúng hạn"          tone={W.acc} />
+          <Stat n={graded.length}  label={t('Đã nộp & chấm')}     sub={`${t('trên')} ${total} ${t('task')}`} />
+          <Stat n={pending.length} label={t('Đang chờ chấm')}     tone={pending.length ? W.warn : W.ink} />
+          <Stat n={`${score}%`}     label={t('Tiến độ checklist')} tone={W.done} />
+          <Stat n={onTime}          label={t('Đúng hạn')}          tone={W.acc} />
         </div>
 
         <div style={{ display:'flex', gap:14 }}>
           <div style={{ width:230, flexShrink:0, display:'flex', flexDirection:'column', gap:14 }}>
             <Card pad={18} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:12 }}>
-              <Ring pct={donePct} label={`${donePct}%`} sub="hoàn thành" size={128} stroke={12}
+              <Ring pct={donePct} label={`${donePct}%`} sub={t('hoàn thành')} size={128} stroke={12}
                 c={donePct===100 ? W.done : W.acc} />
               <div style={{ textAlign:'center' }}>
-                <div style={{ fontSize:13, fontWeight:700 }}>{graded.length} / {total} task</div>
-                <T size={11.5} style={{ marginTop:3 }}>Còn {total - graded.length} task</T>
+                <div style={{ fontSize:13, fontWeight:700 }}>{graded.length} / {total} {t('task')}</div>
+                <T size={11.5} style={{ marginTop:3 }}>{t('Còn ')}{total - graded.length} {t('task')}</T>
               </div>
             </Card>
             <PhaseBar subByTaskId={subByTask} />
@@ -60,20 +62,20 @@ export default function Progress() {
 
           <Card pad={0} style={{ flex:1, minWidth:0, overflow:'hidden' }}>
             <div style={{ padding:'13px 16px', borderBottom:`1px solid ${W.line2}` }}>
-              <H size={14}>Bài nộp gần đây</H>
+              <H size={14}>{t('Bài nộp gần đây')}</H>
             </div>
             <div style={{ display:'flex', padding:'9px 16px', fontSize:10.5, fontWeight:700,
               color: W.ink3, letterSpacing:0.3, background: W.panel, fontFamily: W.mono }}>
               <div style={{ width:40 }}>#</div>
-              <div style={{ flex:1 }}>TASK</div>
-              <div style={{ width:70 }}>NGÀY</div>
-              <div style={{ width:70 }}>ĐIỂM</div>
-              <div style={{ width:120 }}>TRẠNG THÁI</div>
+              <div style={{ flex:1 }}>{t('TASK')}</div>
+              <div style={{ width:70 }}>{t('NGÀY')}</div>
+              <div style={{ width:70 }}>{t('ĐIỂM')}</div>
+              <div style={{ width:120 }}>{t('TRẠNG THÁI')}</div>
             </div>
             {loading && <div style={{ padding:20 }}><Skel lines={5} /></div>}
             {!loading && subs.length === 0 && (
               <div style={{ padding:'32px 16px', textAlign:'center', color: W.ink3, fontSize:13 }}>
-                Chưa có bài nộp. <Link to="/emp/roadmap" style={{ color: W.acc }}>Xem lộ trình →</Link>
+                {t('Chưa có bài nộp. ')}<Link to="/emp/roadmap" style={{ color: W.acc }}>{t('Xem lộ trình →')}</Link>
               </div>
             )}
             {subs.map(s => {
@@ -89,8 +91,8 @@ export default function Progress() {
                     {s.status==='graded' ? `${moduleScore(s, s.task_id)}%` : '—'}
                   </div>
                   <div style={{ width:120 }}>
-                    {s.status === 'graded'  && <Tag tone="done">Đã chấm</Tag>}
-                    {s.status === 'pending' && <Tag tone="warn">Chờ chấm</Tag>}
+                    {s.status === 'graded'  && <Tag tone="done">{t('Đã chấm')}</Tag>}
+                    {s.status === 'pending' && <Tag tone="warn">{t('Chờ chấm')}</Tag>}
                   </div>
                 </div>
               )

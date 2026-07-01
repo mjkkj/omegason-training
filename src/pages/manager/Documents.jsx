@@ -3,6 +3,7 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Ico, Skel } from '../../design-system'
 import { useStore, fetchDocuments, uploadDocument, updateDocument, deleteDocument } from '../../store'
 import { readFileEntry, formatSize, isImage } from '../../submission'
+import { useT } from '../../i18n'
 
 const MAX_DOC_BYTES = 30 * 1024 * 1024 // 30MB
 
@@ -13,6 +14,7 @@ function fmtDate(d) {
 
 export default function Documents() {
   const { currentUser } = useStore()
+  const t = useT()
   const [docs, setDocs]       = useState([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle]     = useState('')
@@ -33,7 +35,7 @@ export default function Documents() {
   const handlePick = async (list) => {
     const f = list?.[0]
     if (!f) return
-    if (f.size > MAX_DOC_BYTES) { setError(`Tệp quá lớn (tối đa ${formatSize(MAX_DOC_BYTES)})`); return }
+    if (f.size > MAX_DOC_BYTES) { setError(`${t('Tệp quá lớn (tối đa')} ${formatSize(MAX_DOC_BYTES)})`); return }
     setError(null)
     const entry = await readFileEntry(f)
     setFile(entry)
@@ -41,8 +43,8 @@ export default function Documents() {
   }
 
   const handleSubmit = async () => {
-    if (!title.trim()) { setError('Vui lòng nhập tên tài liệu'); return }
-    if (!editingId && !file) { setError('Vui lòng chọn tệp để tải lên'); return }
+    if (!title.trim()) { setError(t('Vui lòng nhập tên tài liệu')); return }
+    if (!editingId && !file) { setError(t('Vui lòng chọn tệp để tải lên')); return }
     setSaving(true)
     setError(null)
     try {
@@ -69,20 +71,20 @@ export default function Documents() {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('Xoá tài liệu này?')) return
+    if (!confirm(t('Xoá tài liệu này?'))) return
     await deleteDocument(id)
     load()
   }
 
   return (
-    <Shell role="mgr" title="Tài liệu" sub="Đăng tài liệu tham khảo cho học viên">
+    <Shell role="mgr" title={t('Tài liệu')} sub={t('Đăng tài liệu tham khảo cho học viên')}>
       <div style={{ display:'flex', gap:16 }}>
         <Card pad={16} style={{ width:320, flexShrink:0, display:'flex', flexDirection:'column', gap:10 }}>
-          <T size={11} mono c={W.ink3}>{editingId ? 'SỬA TÀI LIỆU' : 'ĐĂNG TÀI LIỆU MỚI'}</T>
-          <input placeholder="Tên tài liệu" value={title} onChange={e => setTitle(e.target.value)}
+          <T size={11} mono c={W.ink3}>{editingId ? t('SỬA TÀI LIỆU') : t('ĐĂNG TÀI LIỆU MỚI')}</T>
+          <input placeholder={t('Tên tài liệu')} value={title} onChange={e => setTitle(e.target.value)}
             style={{ border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px', fontSize:13,
               fontFamily: W.font, outline:'none', color: W.ink, background:'#fff' }} />
-          <textarea placeholder="Mô tả (tuỳ chọn)" value={desc} onChange={e => setDesc(e.target.value)} rows={3}
+          <textarea placeholder={t('Mô tả (tuỳ chọn)')} value={desc} onChange={e => setDesc(e.target.value)} rows={3}
             style={{ border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px', fontSize:13,
               fontFamily: W.font, outline:'none', color: W.ink, background:'#fff', resize:'vertical' }} />
 
@@ -92,9 +94,9 @@ export default function Documents() {
                 padding:'14px', textAlign:'center', cursor:'pointer' }}>
               <Ico name="up" s={18} c={W.acc} />
               <div style={{ fontSize:12.5, fontWeight:600, marginTop:4 }}>
-                {file ? file.name : 'Chọn tệp tài liệu'}
+                {file ? file.name : t('Chọn tệp tài liệu')}
               </div>
-              <T size={10.5} style={{ marginTop:2 }}>Tối đa {formatSize(MAX_DOC_BYTES)}/tệp</T>
+              <T size={10.5} style={{ marginTop:2 }}>{t('Tối đa')} {formatSize(MAX_DOC_BYTES)}{t('/tệp')}</T>
             </div>
           )}
           <input ref={inputRef} type="file" style={{ display:'none' }}
@@ -104,9 +106,9 @@ export default function Documents() {
 
           <div style={{ display:'flex', gap:8 }}>
             <Btn kind="solid" size="sm" full disabled={saving} onClick={handleSubmit}>
-              {saving ? 'Đang lưu…' : editingId ? 'Lưu thay đổi' : 'Đăng tài liệu'}
+              {saving ? t('Đang lưu…') : editingId ? t('Lưu thay đổi') : t('Đăng tài liệu')}
             </Btn>
-            {editingId && <Btn kind="ghost" size="sm" onClick={resetForm}>Hủy</Btn>}
+            {editingId && <Btn kind="ghost" size="sm" onClick={resetForm}>{t('Hủy')}</Btn>}
           </div>
         </Card>
 
@@ -116,7 +118,7 @@ export default function Documents() {
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
               gap:10, color: W.ink3, padding:'60px 0' }}>
               <Ico name="folder" s={32} c={W.ink4} />
-              <T size={13}>Chưa có tài liệu nào. Đăng tài liệu đầu tiên ở bên trái.</T>
+              <T size={13}>{t('Chưa có tài liệu nào. Đăng tài liệu đầu tiên ở bên trái.')}</T>
             </div>
           )}
           {!loading && docs.length > 0 && (

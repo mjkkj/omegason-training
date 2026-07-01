@@ -5,8 +5,10 @@ import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../des
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
 import { overallScore, indexByTask } from '../../checklist'
+import { useT } from '../../i18n'
 
 export default function Employees() {
+  const t = useT()
   const [employees, setEmployees] = useState([])
   const [subs, setSubs]           = useState([])
   const [loading, setLoading]     = useState(true)
@@ -31,13 +33,13 @@ export default function Employees() {
   const avgPct = rows.length ? Math.round(rows.reduce((s,r)=>s+r.pct,0)/rows.length) : 0
 
   return (
-    <Shell role="mgr" title="Danh sách nhân viên" sub={`${employees.length} người đang đào tạo`}>
+    <Shell role="mgr" title={t('Danh sách nhân viên')} sub={`${employees.length}${t(' người đang đào tạo')}`}>
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         <div style={{ display:'flex', gap:12 }}>
-          <Stat n={employees.length}                   label="Đang đào tạo" />
-          <Stat n={rows.filter(r=>r.hasLate).length}   label="Có task trễ"     tone={W.late} />
-          <Stat n={rows.filter(r=>r.pending>0).length} label="Có bài chờ chấm" tone={W.warn} />
-          <Stat n={`${avgPct}%`}                       label="TB tiến độ"       tone={W.acc} />
+          <Stat n={employees.length}                   label={t('Đang đào tạo')} />
+          <Stat n={rows.filter(r=>r.hasLate).length}   label={t('Có task trễ')}     tone={W.late} />
+          <Stat n={rows.filter(r=>r.pending>0).length} label={t('Có bài chờ chấm')} tone={W.warn} />
+          <Stat n={`${avgPct}%`}                       label={t('TB tiến độ')}       tone={W.acc} />
         </div>
 
         {loading ? <Skel lines={6} gap={14} /> : (
@@ -45,16 +47,16 @@ export default function Employees() {
             <div style={{ display:'flex', alignItems:'center', padding:'10px 16px', background: W.panel,
               borderBottom:`1px solid ${W.line2}`, fontSize:10.5, fontWeight:700, color: W.ink3,
               letterSpacing:0.3, fontFamily: W.mono }}>
-              <div style={{ flex:1 }}>NHÂN VIÊN</div>
-              <div style={{ width:150 }}>TIẾN ĐỘ</div>
-              <div style={{ width:80 }}>ĐIỂM %</div>
-              <div style={{ width:130 }}>TRẠNG THÁI</div>
+              <div style={{ flex:1 }}>{t('NHÂN VIÊN')}</div>
+              <div style={{ width:150 }}>{t('TIẾN ĐỘ')}</div>
+              <div style={{ width:80 }}>{t('ĐIỂM %')}</div>
+              <div style={{ width:130 }}>{t('TRẠNG THÁI')}</div>
               <div style={{ width:80 }} />
             </div>
 
             {rows.length === 0 && (
               <div style={{ padding:'40px 16px', textAlign:'center', color: W.ink3 }}>
-                Chưa có nhân viên. Nhân viên tự đăng ký tài khoản tại app rồi sẽ xuất hiện ở đây.
+                {t('Chưa có nhân viên. Nhân viên tự đăng ký tài khoản tại app rồi sẽ xuất hiện ở đây.')}
               </div>
             )}
 
@@ -77,18 +79,18 @@ export default function Employees() {
                       c={emp.hasLate?W.late:emp.pct>=80?W.done:W.acc} />
                     <span style={{ fontSize:12, fontWeight:700, fontFamily: W.mono, width:35 }}>{emp.pct}%</span>
                   </div>
-                  <div style={{ fontSize:10.5, color: W.ink3, marginTop:3 }}>{emp.graded}/{TASKS.length} task</div>
+                  <div style={{ fontSize:10.5, color: W.ink3, marginTop:3 }}>{emp.graded}/{TASKS.length} {t('task')}</div>
                 </div>
                 <div style={{ width:80, fontSize:14, fontWeight:700, color: emp.score?W.done:W.ink4, fontFamily: W.mono }}>
                   {emp.score}%
                 </div>
                 <div style={{ width:130 }}>
-                  {emp.hasLate   ? <Tag tone="late">Trễ hạn</Tag>
-                    : emp.pending>0 ? <Tag tone="warn">{emp.pending} chờ chấm</Tag>
-                    : <Tag tone="done">Đúng tiến độ</Tag>}
+                  {emp.hasLate   ? <Tag tone="late">{t('Trễ hạn')}</Tag>
+                    : emp.pending>0 ? <Tag tone="warn">{emp.pending} {t('chờ chấm')}</Tag>
+                    : <Tag tone="done">{t('Đúng tiến độ')}</Tag>}
                 </div>
                 <div style={{ width:80, display:'flex', justifyContent:'flex-end' }}>
-                  <Link to={`/mgr/employee/${emp.id}`}><Btn kind="ghost" size="sm">Hồ sơ</Btn></Link>
+                  <Link to={`/mgr/employee/${emp.id}`}><Btn kind="ghost" size="sm">{t('Hồ sơ')}</Btn></Link>
                 </div>
               </div>
             ))}

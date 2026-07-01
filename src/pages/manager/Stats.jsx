@@ -5,8 +5,10 @@ import { W, Card, H, T, Btn, Tag, Bar, Stat, Ico, Avatar, Skel } from '../../des
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, WEEKS, calcDeadline } from '../../data'
 import { overallScore, indexByTask } from '../../checklist'
+import { useT } from '../../i18n'
 
 export default function Stats() {
+  const t = useT()
   const [employees, setEmployees] = useState([])
   const [subs, setSubs]           = useState([])
   const [loading, setLoading]     = useState(true)
@@ -42,27 +44,27 @@ export default function Stats() {
   const topEmps  = [...empData].sort((a,b)=>b.pct-a.pct)
 
   return (
-    <Shell role="mgr" title="Thống kê đào tạo" sub="Toàn đội · dữ liệu thực"
+    <Shell role="mgr" title={t('Thống kê đào tạo')} sub={t('Toàn đội · dữ liệu thực')}
       actions={pendingTotal>0 && (
         <Link to="/mgr/queue">
-          <Btn kind="soft" size="sm" icon={<Ico name="inbox" s={14} c={W.warn}/>}>{pendingTotal} bài chờ</Btn>
+          <Btn kind="soft" size="sm" icon={<Ico name="inbox" s={14} c={W.warn}/>}>{pendingTotal} {t('bài chờ')}</Btn>
         </Link>
       )}>
 
       {loading ? <Skel lines={6} gap={18} /> : (
         <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
           <div style={{ display:'flex', gap:12 }}>
-            <Stat n={employees.length}  label="Nhân viên"        sub="đang đào tạo" />
-            <Stat n={`${avgPct}%`}      label="Hoàn thành TB"    tone={W.acc} />
-            <Stat n={lateCount}         label="Đang trễ hạn"     tone={lateCount?W.late:W.ink} sub={lateCount?'cần nhắc':'tốt!'} />
-            <Stat n={pendingTotal}      label="Chờ chấm"         tone={pendingTotal?W.warn:W.ink} />
-            <Stat n={`${avgScore}%`}    label="Checklist TB đội" tone={W.done} />
+            <Stat n={employees.length}  label={t('Nhân viên')}        sub={t('đang đào tạo')} />
+            <Stat n={`${avgPct}%`}      label={t('Hoàn thành TB')}    tone={W.acc} />
+            <Stat n={lateCount}         label={t('Đang trễ hạn')}     tone={lateCount?W.late:W.ink} sub={lateCount?t('cần nhắc'):t('tốt!')} />
+            <Stat n={pendingTotal}      label={t('Chờ chấm')}         tone={pendingTotal?W.warn:W.ink} />
+            <Stat n={`${avgScore}%`}    label={t('Checklist TB đội')} tone={W.done} />
           </div>
 
           <div style={{ display:'flex', gap:14 }}>
             <Card pad={18} style={{ flex:1 }}>
-              <H size={14} mb={4}>Tỉ lệ hoàn thành theo giai đoạn</H>
-              <T size={11.5} mb={16} c={W.ink3}>% module đã chấm / tổng yêu cầu cả đội</T>
+              <H size={14} mb={4}>{t('Tỉ lệ hoàn thành theo giai đoạn')}</H>
+              <T size={11.5} mb={16} c={W.ink3}>{t('% module đã chấm / tổng yêu cầu cả đội')}</T>
               <div style={{ display:'flex', alignItems:'flex-end', gap:16, height:160 }}>
                 {weekBars.map(({label,pct},i) => (
                   <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:8, height:'100%' }}>
@@ -83,28 +85,28 @@ export default function Stats() {
               <Card pad={16}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
                   <Ico name="flag" s={15} c={W.late} />
-                  <H size={14}>Đang trễ deadline</H>
+                  <H size={14}>{t('Đang trễ deadline')}</H>
                 </div>
                 {lateEmps.length===0
-                  ? <T size={13} c={W.done}>Không ai đang trễ 🎉</T>
+                  ? <T size={13} c={W.done}>{t('Không ai đang trễ 🎉')}</T>
                   : lateEmps.map((emp,i) => {
-                    const lateCnt = TASKS.filter(t=>{const s=subs.find(s=>s.employee_id===emp.id&&s.task_id===t.id);return !s&&new Date()>new Date(calcDeadline(t, emp.start_date))}).length
+                    const lateCnt = TASKS.filter(tk=>{const s=subs.find(s=>s.employee_id===emp.id&&s.task_id===tk.id);return !s&&new Date()>new Date(calcDeadline(tk, emp.start_date))}).length
                     return (
                       <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 0',
                         borderTop:i?`1px solid ${W.line2}`:'none' }}>
                         <Avatar s={28} txt={emp.initials} />
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:12.5, fontWeight:600 }}>{emp.name}</div>
-                          <div style={{ fontSize:10.5, color: W.late }}>{lateCnt} task trễ</div>
+                          <div style={{ fontSize:10.5, color: W.late }}>{lateCnt}{t(' task trễ')}</div>
                         </div>
-                        <Link to={`/mgr/employee/${emp.id}`}><Btn kind="ghost" size="sm">Xem</Btn></Link>
+                        <Link to={`/mgr/employee/${emp.id}`}><Btn kind="ghost" size="sm">{t('Xem')}</Btn></Link>
                       </div>
                     )
                   })
                 }
               </Card>
               <Card pad={16} style={{ flex:1 }}>
-                <H size={14} mb={12}>Dẫn đầu</H>
+                <H size={14} mb={12}>{t('Dẫn đầu')}</H>
                 {topEmps.slice(0,4).map((emp,i) => (
                   <div key={i} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:i<3?12:0 }}>
                     <div style={{ fontSize:13, fontWeight:800, width:16, textAlign:'center',

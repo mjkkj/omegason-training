@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useStore } from './store'
 import { W } from './design-system'
+import { useT } from './i18n'
 
 import Login from './pages/Login'
 import Roadmap from './pages/employee/Roadmap'
@@ -21,11 +22,12 @@ import Roles from './pages/manager/Roles'
 
 function Guard({ role, children }) {
   const { currentUser, initialized } = useStore()
+  const t = useT()
 
   if (!initialized) return (
     <div style={{ height:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
       fontFamily: W.font, color: W.ink3, fontSize:14 }}>
-      Đang tải…
+      {t('Đang tải…')}
     </div>
   )
   if (!currentUser) return <Navigate to="/" replace />

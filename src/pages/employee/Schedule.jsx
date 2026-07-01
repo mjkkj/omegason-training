@@ -5,6 +5,7 @@ import { W, Card, H, T, Btn, Tag, Dot, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
 import { moduleScore, SCORE_PHASES } from '../../checklist'
+import { useT } from '../../i18n'
 
 function daysLeftLabel(deadline, sub) {
   if (sub?.status === 'graded')  return `${moduleScore(sub, sub.task_id)}%`
@@ -33,6 +34,7 @@ function fmtDeadline(dl) {
 
 export default function Schedule() {
   const { currentUser } = useStore()
+  const t = useT()
   const [subs, setSubs] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -53,7 +55,7 @@ export default function Schedule() {
   upcoming.forEach(t => {
     const idx = SCORE_PHASES.findIndex(p => p.taskIds.includes(t.id))
     const p   = SCORE_PHASES[idx]
-    const key = p ? `Phase ${idx + 1} · ${p.name}` : 'Khác'
+    const key = p ? `${t('Phase ')}${idx + 1} · ${p.name}` : t('Khác')
     if (!phaseMap[key]) phaseMap[key] = []
     phaseMap[key].push(t)
   })
@@ -61,18 +63,18 @@ export default function Schedule() {
 
   const completed = past.filter(t => getSub(t.id)?.status === 'graded')
   const overdue   = past.filter(t => !getSub(t.id))
-  if (completed.length) groups.push({ label:'Đã hoàn thành', tasks: completed, done:true })
-  if (overdue.length)   groups.push({ label:'Trễ deadline',  tasks: overdue,   overdue:true })
+  if (completed.length) groups.push({ label:t('Đã hoàn thành'), tasks: completed, done:true })
+  if (overdue.length)   groups.push({ label:t('Trễ deadline'),  tasks: overdue,   overdue:true })
 
   return (
-    <Shell role="emp" title="Lịch nộp theo 3 phase" sub="Hạn nộp từng module · gần nhất ở trên"
-      actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>Lộ trình</Btn></Link>}>
+    <Shell role="emp" title={t('Lịch nộp theo 3 phase')} sub={t('Hạn nộp từng module · gần nhất ở trên')}
+      actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>{t('Lộ trình')}</Btn></Link>}>
 
       <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
         <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-          {[['done','Đã chấm'],['warn','Chờ chấm'],['late','Trễ hạn'],['acc','Sắp hết'],['neutral','Còn nhiều']].map(([t,l]) => (
-            <div key={t} style={{ display:'flex', alignItems:'center', gap:6 }}>
-              <Dot tone={t} /><span style={{ fontSize:11.5, color: W.ink2 }}>{l}</span>
+          {[['done','Đã chấm'],['warn','Chờ chấm'],['late','Trễ hạn'],['acc','Sắp hết'],['neutral','Còn nhiều']].map(([tone,l]) => (
+            <div key={tone} style={{ display:'flex', alignItems:'center', gap:6 }}>
+              <Dot tone={tone} /><span style={{ fontSize:11.5, color: W.ink2 }}>{t(l)}</span>
             </div>
           ))}
         </div>
@@ -84,7 +86,7 @@ export default function Schedule() {
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
               <H size={13} c={g.done ? W.done : g.overdue ? W.late : W.ink2}>{g.label}</H>
               <div style={{ flex:1, height:1, background: W.line2 }} />
-              <span style={{ fontSize:11, color: W.ink4, fontFamily: W.mono }}>{g.tasks.length} task</span>
+              <span style={{ fontSize:11, color: W.ink4, fontFamily: W.mono }}>{g.tasks.length} {t('task')}</span>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {g.tasks.map(task => {
@@ -112,7 +114,7 @@ export default function Schedule() {
                     </div>
                     <Tag tone={tone}>{label}</Tag>
                     {(tone==='acc'||tone==='late') && !sub && (
-                      <Link to={`/emp/submit/${task.id}`}><Btn kind="soft" size="sm">Nộp</Btn></Link>
+                      <Link to={`/emp/submit/${task.id}`}><Btn kind="soft" size="sm">{t('Nộp')}</Btn></Link>
                     )}
                   </Card>
                 )

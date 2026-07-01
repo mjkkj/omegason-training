@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { W, Avatar, Ico } from '../design-system'
 import { useStore } from '../store'
+import { useT } from '../i18n'
 
 const EMP_NAV = [
   { ic:'home',  label:'Tổng quan',       path:'/emp/progress' },
@@ -31,7 +32,8 @@ function getActiveIdx(nav, pathname) {
 export default function Shell({ role = 'emp', title, sub, actions, children, pad = 26, body = W.panel }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useStore();
+  const { currentUser, logout, language, setLanguage } = useStore();
+  const t = useT();
   const nav = role === 'emp' ? EMP_NAV : MGR_NAV;
   const active = getActiveIdx(nav, location.pathname);
   const pendingCount = 0;
@@ -41,7 +43,7 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
     navigate('/');
   };
 
-  const roleTxt = role === 'emp' ? 'Nhân viên' : 'Quản lý';
+  const roleTxt = t(role === 'emp' ? 'Nhân viên' : 'Quản lý');
 
   return (
     <div style={{ width:'100vw', height:'100vh', display:'flex', background: W.paper, overflow:'hidden',
@@ -77,7 +79,7 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
                   background: isActive ? W.accSoft : 'transparent',
                   transition:'background .15s, color .15s' }}>
                   <Ico name={n.ic} s={16} c={isActive ? W.acc : W.ink3} />
-                  <span style={{ flex:1 }}>{n.label}</span>
+                  <span style={{ flex:1 }}>{t(n.label)}</span>
                   {badge && (
                     <span style={{ background: W.warn, color:'#fff', fontSize:10, fontWeight:700,
                       borderRadius:10, padding:'1px 6px', fontFamily: W.mono }}>{badge}</span>
@@ -88,20 +90,33 @@ export default function Shell({ role = 'emp', title, sub, actions, children, pad
           })}
         </div>
 
+        {/* language toggle */}
+        <div style={{ marginTop:'auto', display:'flex', borderTop:`1px solid ${W.line2}`, paddingTop:10, gap:4 }}>
+          {['vi', 'en'].map(lng => (
+            <div key={lng} role="button" onClick={() => setLanguage(lng)}
+              style={{ flex:1, textAlign:'center', padding:'5px 0', borderRadius:6, cursor:'pointer',
+                fontSize:10.5, fontWeight:700, fontFamily: W.mono, letterSpacing:0.4,
+                color: language === lng ? W.acc : W.ink3,
+                background: language === lng ? W.accSoft : 'transparent' }}>
+              {lng.toUpperCase()}
+            </div>
+          ))}
+        </div>
+
         {/* user footer */}
-        <div style={{ marginTop:'auto', borderTop:`1px solid ${W.line2}`, paddingTop:10 }}>
+        <div style={{ borderTop:`1px solid ${W.line2}`, paddingTop:10 }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 8px' }}>
             <Avatar s={30} txt={currentUser?.initials || (role === 'emp' ? 'NV' : 'QL')} />
             <div style={{ minWidth:0, flex:1 }}>
               <div style={{ fontSize:12.5, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden',
                 textOverflow:'ellipsis', fontFamily: W.font }}>
-                {currentUser?.name || (role === 'emp' ? 'Nhân viên' : 'Quản lý')}
+                {currentUser?.name || roleTxt}
               </div>
               <div style={{ fontSize:10.5, color: W.ink3, fontFamily: W.font }}>
-                {role === 'emp' ? 'Full-Stack Marketer' : 'Quản lý đào tạo'}
+                {t(role === 'emp' ? 'Full-Stack Marketer' : 'Quản lý đào tạo')}
               </div>
             </div>
-            <div role="button" onClick={handleLogout} title="Đăng xuất"
+            <div role="button" onClick={handleLogout} title={t('Đăng xuất')}
               style={{ cursor:'pointer', color: W.ink3, display:'flex', padding:4, borderRadius:6,
                 transition:'background .15s' }}
               onMouseEnter={e => e.currentTarget.style.background = W.panel2}

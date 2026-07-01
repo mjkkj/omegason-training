@@ -1,16 +1,18 @@
 import { W, Card, T, Ico } from '../design-system'
 import { parseSubmission, isImage, isHtml, formatSize } from '../submission'
+import { useT } from '../i18n'
 
 // Renders a submission's content (text / images / files / links), handling
 // the new structured format plus legacy HTML and plain-text submissions.
 // `pad` controls outer padding; the component scrolls within its parent.
 export default function SubmissionView({ sub, pad = 18 }) {
+  const t = useT()
   const c = parseSubmission(sub)
 
   if (c.kind === 'empty') {
     return (
       <div style={{ padding: pad, color: W.ink3, fontSize: 13 }}>
-        Bài nộp này không có nội dung đính kèm{sub?.note ? ' (xem ghi chú).' : '.'}
+        {t('Bài nộp này không có nội dung đính kèm')}{sub?.note ? t(' (xem ghi chú).') : '.'}
       </div>
     )
   }
@@ -28,7 +30,7 @@ export default function SubmissionView({ sub, pad = 18 }) {
       {/* TEXT */}
       {c.text && (
         <div>
-          <T size={11} mono c={W.ink3} mb={8}>NỘI DUNG BÁO CÁO</T>
+          <T size={11} mono c={W.ink3} mb={8}>{t('NỘI DUNG BÁO CÁO')}</T>
           <Card pad={14}>
             <div style={{ whiteSpace: 'pre-wrap', fontSize: 13.5, lineHeight: 1.65, color: W.ink }}>{c.text}</div>
           </Card>
@@ -38,10 +40,10 @@ export default function SubmissionView({ sub, pad = 18 }) {
       {/* FILES */}
       {c.files?.length > 0 && (
         <div>
-          <T size={11} mono c={W.ink3} mb={8}>TỆP ĐÍNH KÈM · {c.files.length}</T>
+          <T size={11} mono c={W.ink3} mb={8}>{t('TỆP ĐÍNH KÈM · ')}{c.files.length}</T>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {c.files.map((f, i) => (
-              <FileBlock key={i} file={f} />
+              <FileBlock key={i} file={f} t={t} />
             ))}
           </div>
         </div>
@@ -50,7 +52,7 @@ export default function SubmissionView({ sub, pad = 18 }) {
       {/* LINKS */}
       {c.links?.length > 0 && (
         <div>
-          <T size={11} mono c={W.ink3} mb={8}>LIÊN KẾT · {c.links.length}</T>
+          <T size={11} mono c={W.ink3} mb={8}>{t('LIÊN KẾT · ')}{c.links.length}</T>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {c.links.map((l, i) => (
               <a key={i} href={l.url} target="_blank" rel="noopener noreferrer"
@@ -73,7 +75,7 @@ export default function SubmissionView({ sub, pad = 18 }) {
   )
 }
 
-function FileBlock({ file }) {
+function FileBlock({ file, t }) {
   if (isImage(file) && file.data) {
     return (
       <Card pad={0} style={{ overflow: 'hidden' }}>
@@ -117,7 +119,7 @@ function FileBlock({ file }) {
       </div>
       {file.data && (
         <a href={file.data} download={file.name}
-          style={{ fontSize: 12, fontWeight: 600, color: W.acc, textDecoration: 'none' }}>Tải về</a>
+          style={{ fontSize: 12, fontWeight: 600, color: W.acc, textDecoration: 'none' }}>{t('Tải về')}</a>
       )}
     </Card>
   )

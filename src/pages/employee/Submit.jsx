@@ -9,11 +9,13 @@ import {
   readFileEntry, buildSubmission, parseSubmission, isImage, isHtml,
   formatSize, MAX_FILE_BYTES, MAX_TOTAL_BYTES,
 } from '../../submission'
+import { useT } from '../../i18n'
 
 export default function Submit() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { currentUser } = useStore()
+  const t = useT()
   const task = TASKS.find(t => t.id === id)
 
   const [existingSub, setExistingSub] = useState(null)
@@ -57,8 +59,8 @@ export default function Submit() {
     let running = totalBytes
     const accepted = []
     for (const f of arr) {
-      if (f.size > MAX_FILE_BYTES) { setError(`"${f.name}" quá lớn (tối đa ${formatSize(MAX_FILE_BYTES)}/tệp)`); continue }
-      if (running + f.size > MAX_TOTAL_BYTES) { setError(`Tổng dung lượng vượt ${formatSize(MAX_TOTAL_BYTES)}`); continue }
+      if (f.size > MAX_FILE_BYTES) { setError(`"${f.name}" ${t('quá lớn (tối đa')} ${formatSize(MAX_FILE_BYTES)}${t('/tệp)')}`); continue }
+      if (running + f.size > MAX_TOTAL_BYTES) { setError(`${t('Tổng dung lượng vượt')} ${formatSize(MAX_TOTAL_BYTES)}`); continue }
       try { accepted.push(await readFileEntry(f)); running += f.size } catch (e) { setError(e.message) }
     }
     if (accepted.length) setFiles(prev => [...prev, ...accepted])
@@ -71,7 +73,7 @@ export default function Submit() {
 
   const handleSubmit = async () => {
     const built = buildSubmission({ text, links, files, selfChecked })
-    if (built.isEmpty) { setError('Hãy nhập nội dung, đính kèm tệp hoặc dán ít nhất một liên kết.'); return }
+    if (built.isEmpty) { setError(t('Hãy nhập nội dung, đính kèm tệp hoặc dán ít nhất một liên kết.')); return }
     setSaving(true)
     try {
       await upsertSubmission({
@@ -90,15 +92,15 @@ export default function Submit() {
   }
 
   if (submitted) return (
-    <Shell role="emp" title="Nộp báo cáo" sub={moduleLabel(task)} body={W.panel2}>
+    <Shell role="emp" title={t('Nộp báo cáo')} sub={moduleLabel(task)} body={W.panel2}>
       <div style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{ textAlign:'center' }}>
           <div style={{ width:64, height:64, borderRadius:20, background: W.doneSoft,
             margin:'0 auto 16px', display:'flex', alignItems:'center', justifyContent:'center' }}>
             <Ico name="check" s={28} c={W.done} sw={2.5} />
           </div>
-          <H size={20} mb={8}>Đã nộp thành công!</H>
-          <T size={13.5}>Đang chuyển về trang module...</T>
+          <H size={20} mb={8}>{t('Đã nộp thành công!')}</H>
+          <T size={13.5}>{t('Đang chuyển về trang module...')}</T>
         </div>
       </div>
     </Shell>
@@ -107,7 +109,7 @@ export default function Submit() {
   const validLinks = links.filter(l => l.url.trim()).length
 
   return (
-    <Shell role="emp" title={existingSub ? 'Chỉnh sửa & nộp lại' : 'Nộp báo cáo'}
+    <Shell role="emp" title={existingSub ? t('Chỉnh sửa & nộp lại') : t('Nộp báo cáo')}
       sub={`${moduleLabel(task)} · ${task.name}`} body={W.panel2}>
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'center', paddingTop:8 }}>
         <Card pad={0} r={14} style={{ width:'100%', maxWidth:620, boxShadow:'0 10px 40px rgba(0,0,0,.10)' }}>
@@ -115,7 +117,7 @@ export default function Submit() {
           <div style={{ padding:'18px 22px', borderBottom:`1px solid ${W.line2}`,
             display:'flex', alignItems:'center', gap:10 }}>
             <Ico name="up" s={18} c={W.acc} />
-            <H size={16}>{existingSub ? 'Chỉnh sửa bài nộp' : 'Bài nộp'} · {moduleLabel(task)}</H>
+            <H size={16}>{existingSub ? t('Chỉnh sửa bài nộp') : t('Bài nộp')} · {moduleLabel(task)}</H>
             <div style={{ flex:1 }} />
             <Link to={`/emp/task/${id}`}>
               <span style={{ fontSize:20, color: W.ink4, cursor:'pointer' }}>×</span>
@@ -127,7 +129,7 @@ export default function Submit() {
             display:'flex', alignItems:'flex-start', gap:9 }}>
             <Ico name="doc" s={14} c={W.acc} />
             <T size={12} c={W.ink2} style={{ lineHeight:1.5 }}>
-              <b>Đầu ra:</b> {task.file}. Nộp theo định dạng phù hợp — văn bản, ảnh chụp, tệp, hoặc link (Drive/Sheet/Figma…).
+              <b>{t('Đầu ra:')}</b> {task.file}. {t('Nộp theo định dạng phù hợp — văn bản, ảnh chụp, tệp, hoặc link (Drive/Sheet/Figma…).')}
             </T>
           </div>
 
@@ -137,7 +139,7 @@ export default function Submit() {
             {checklist.length > 0 && (
               <div>
                 <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:8 }}>
-                  <T size={12} weight={600} c={W.ink2}>Checklist cần đạt <span style={{ color:W.ink4, fontWeight:400 }}>· tự rà trước khi nộp</span></T>
+                  <T size={12} weight={600} c={W.ink2}>{t('Checklist cần đạt')} <span style={{ color:W.ink4, fontWeight:400 }}>{t('· tự rà trước khi nộp')}</span></T>
                   <span style={{ fontSize:12, fontWeight:700, fontFamily:W.mono,
                     color: selfChecked.length===checklist.length ? W.done : W.acc }}>
                     {selfChecked.length}/{checklist.length}
@@ -156,9 +158,9 @@ export default function Submit() {
             )}
 
             {/* TEXT */}
-            <Field label="Nội dung báo cáo">
+            <Field label={t('Nội dung báo cáo')}>
               <textarea value={text} onChange={e => setText(e.target.value)} rows={6}
-                placeholder="Viết báo cáo / phân tích / quyết định ở đây. Có thể dán bảng số, ghi chú quyết định…"
+                placeholder={t('Viết báo cáo / phân tích / quyết định ở đây. Có thể dán bảng số, ghi chú quyết định…')}
                 style={{ width:'100%', border:`1px solid ${W.line}`, borderRadius:8, background:'#fff',
                   padding:'11px 13px', fontSize:13, color: W.ink, fontFamily: W.font,
                   resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:1.6 }} />
@@ -166,7 +168,7 @@ export default function Submit() {
 
             {/* FILES */}
             <div>
-              <T size={12} weight={600} c={W.ink2} mb={8}>Tệp đính kèm <span style={{ color:W.ink4, fontWeight:400 }}>· ảnh, PDF, video, .html… (≤ {formatSize(MAX_FILE_BYTES)}/tệp)</span></T>
+              <T size={12} weight={600} c={W.ink2} mb={8}>{t('Tệp đính kèm')} <span style={{ color:W.ink4, fontWeight:400 }}>· ảnh, PDF, video, .html… (≤ {formatSize(MAX_FILE_BYTES)}/tệp)</span></T>
               <div
                 onClick={() => inputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setDragging(true) }}
@@ -175,8 +177,8 @@ export default function Submit() {
                 style={{ border:`1.5px dashed ${dragging ? W.acc : W.accLine}`, borderRadius:12,
                   background: W.accSoft, padding:'20px', textAlign:'center', cursor:'pointer' }}>
                 <Ico name="up" s={22} c={W.acc} />
-                <div style={{ fontSize:13.5, fontWeight:700, marginTop:6 }}>Kéo & thả hoặc bấm để chọn tệp</div>
-                <T size={11.5} style={{ marginTop:3 }}>Chọn nhiều tệp · tổng tối đa {formatSize(MAX_TOTAL_BYTES)}</T>
+                <div style={{ fontSize:13.5, fontWeight:700, marginTop:6 }}>{t('Kéo & thả hoặc bấm để chọn tệp')}</div>
+                <T size={11.5} style={{ marginTop:3 }}>{t('Chọn nhiều tệp · tổng tối đa')} {formatSize(MAX_TOTAL_BYTES)}</T>
               </div>
               <input ref={inputRef} type="file" multiple style={{ display:'none' }}
                 onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
@@ -209,8 +211,8 @@ export default function Submit() {
             {/* LINKS */}
             <div>
               <div style={{ display:'flex', alignItems:'center', marginBottom:8 }}>
-                <T size={12} weight={600} c={W.ink2} style={{ flex:1 }}>Liên kết <span style={{ color:W.ink4, fontWeight:400 }}>· Google Drive/Sheet, Figma, Loom…</span></T>
-                <Btn kind="ghost" size="sm" icon={<Ico name="plus" s={12} c={W.acc}/>} onClick={addLink}>Thêm link</Btn>
+                <T size={12} weight={600} c={W.ink2} style={{ flex:1 }}>{t('Liên kết')} <span style={{ color:W.ink4, fontWeight:400 }}>· Google Drive/Sheet, Figma, Loom…</span></T>
+                <Btn kind="ghost" size="sm" icon={<Ico name="plus" s={12} c={W.acc}/>} onClick={addLink}>{t('Thêm link')}</Btn>
               </div>
               {links.length > 0 && (
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -221,7 +223,7 @@ export default function Submit() {
                         style={{ flex:2, border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px',
                           fontSize:13, fontFamily:W.font, outline:'none', color:W.ink, background:'#fff' }} />
                       <input value={l.label} onChange={e => setLink(i, 'label', e.target.value)}
-                        placeholder="Nhãn (tuỳ chọn)"
+                        placeholder={t('Nhãn (tuỳ chọn)')}
                         style={{ flex:1, border:`1px solid ${W.line}`, borderRadius:8, padding:'9px 12px',
                           fontSize:13, fontFamily:W.font, outline:'none', color:W.ink, background:'#fff' }} />
                       <div role="button" onClick={() => removeLink(i)}
@@ -239,9 +241,9 @@ export default function Submit() {
                 padding:'10px 14px', fontSize:13, color: W.late }}>{error}</div>
             )}
 
-            <Field label="Ghi chú cho người chấm (tuỳ chọn)">
+            <Field label={t('Ghi chú cho người chấm (tuỳ chọn)')}>
               <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
-                placeholder="Ví dụ: phần X mình chưa chắc, nhờ anh/chị xem thêm…"
+                placeholder={t('Ví dụ: phần X mình chưa chắc, nhờ anh/chị xem thêm…')}
                 style={{ width:'100%', border:`1px solid ${W.line}`, borderRadius:8, background:'#fff',
                   padding:'10px 12px', fontSize:13, color: W.ink, fontFamily: W.font,
                   resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:1.5 }} />
@@ -251,12 +253,12 @@ export default function Submit() {
           <div style={{ padding:'14px 22px', borderTop:`1px solid ${W.line2}`,
             display:'flex', alignItems:'center', gap:10 }}>
             <T size={11.5} c={W.ink3} style={{ flex:1 }}>
-              {[text.trim() && 'báo cáo', files.length && `${files.length} tệp`, validLinks && `${validLinks} link`]
-                .filter(Boolean).join(' · ') || 'chưa có nội dung'}
+              {[text.trim() && t('báo cáo'), files.length && `${files.length} ${t('tệp')}`, validLinks && `${validLinks} ${t('link')}`]
+                .filter(Boolean).join(' · ') || t('chưa có nội dung')}
             </T>
-            <Link to={`/emp/task/${id}`}><Btn kind="ghost" size="md">Huỷ</Btn></Link>
+            <Link to={`/emp/task/${id}`}><Btn kind="ghost" size="md">{t('Huỷ')}</Btn></Link>
             <Btn kind="solid" size="md" disabled={saving} onClick={handleSubmit}>
-              {saving ? 'Đang lưu…' : existingSub ? 'Cập nhật bài nộp' : 'Nộp báo cáo'}
+              {saving ? t('Đang lưu…') : existingSub ? t('Cập nhật bài nộp') : t('Nộp báo cáo')}
             </Btn>
           </div>
         </Card>

@@ -4,6 +4,7 @@ import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Bar, Ico, Avatar, Skel } from '../../design-system'
 import { fetchAllSubmissions, fetchAllProfiles } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
+import { useT } from '../../i18n'
 
 const TASK_IDS = TASKS.map(t => t.id)
 
@@ -34,6 +35,7 @@ function MxCell({ status }) {
 }
 
 export default function Matrix() {
+  const t = useT()
   const [employees, setEmployees] = useState([])
   const [subs, setSubs]           = useState([])
   const [loading, setLoading]     = useState(true)
@@ -55,16 +57,16 @@ export default function Matrix() {
   const pending = subs.filter(s=>s.status==='pending').length
 
   return (
-    <Shell role="mgr" title="Bảng tiến độ" sub={`${employees.length} nhân viên × ${TASKS.length} task`}
+    <Shell role="mgr" title={t('Bảng tiến độ')} sub={`${employees.length} ${t('nhân viên')} × ${TASKS.length} ${t('task')}`}
       body={W.paper}
-      actions={<>{pending>0&&<Link to="/mgr/queue"><Tag tone="warn">{pending} chờ chấm</Tag></Link>}</>}>
+      actions={<>{pending>0&&<Link to="/mgr/queue"><Tag tone="warn">{pending} {t('chờ chấm')}</Tag></Link>}</>}>
 
       {loading ? <Skel lines={8} gap={14} /> : (
         <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
           <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
-            {[['done','Đã chấm'],['review','Chờ chấm'],['revision','Cần sửa'],['late-miss','Trễ hạn'],['empty','Chưa làm']].map(([t,l]) => (
-              <div key={t} style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <MxCell status={t} /><span style={{ fontSize:11.5, color: W.ink2 }}>{l}</span>
+            {[['done','Đã chấm'],['review','Chờ chấm'],['revision','Cần sửa'],['late-miss','Trễ hạn'],['empty','Chưa làm']].map(([st,l]) => (
+              <div key={st} style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <MxCell status={st} /><span style={{ fontSize:11.5, color: W.ink2 }}>{t(l)}</span>
               </div>
             ))}
           </div>
@@ -72,19 +74,19 @@ export default function Matrix() {
           <Card pad={0} style={{ overflow:'auto' }}>
             <div style={{ display:'flex', alignItems:'center', padding:'10px 14px',
               background: W.panel, borderBottom:`1px solid ${W.line2}`, position:'sticky', top:0, zIndex:1 }}>
-              <div style={{ width:168, fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>NHÂN VIÊN</div>
+              <div style={{ width:168, fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>{t('NHÂN VIÊN')}</div>
               <div style={{ flex:1, display:'flex', gap:4 }}>
-                {TASK_IDS.map(t => (
-                  <div key={t} style={{ width:26, textAlign:'center', fontSize:10.5, fontWeight:700, flexShrink:0,
-                    color: t==='F'?W.acc:(t==='04'||t==='08')?W.warn:W.ink3, fontFamily: W.mono }}>{t}</div>
+                {TASK_IDS.map(tid => (
+                  <div key={tid} style={{ width:26, textAlign:'center', fontSize:10.5, fontWeight:700, flexShrink:0,
+                    color: tid==='F'?W.acc:(tid==='04'||tid==='08')?W.warn:W.ink3, fontFamily: W.mono }}>{tid}</div>
                 ))}
               </div>
-              <div style={{ width:100, textAlign:'right', fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>TIẾN ĐỘ</div>
+              <div style={{ width:100, textAlign:'right', fontSize:11, fontWeight:700, color: W.ink3, fontFamily: W.mono }}>{t('TIẾN ĐỘ')}</div>
             </div>
 
             {rows.length === 0 && (
               <div style={{ padding:'32px 16px', textAlign:'center', color: W.ink3 }}>
-                Chưa có nhân viên nào. Nhắn nhân viên đăng ký tại app.
+                {t('Chưa có nhân viên nào. Nhắn nhân viên đăng ký tại app.')}
               </div>
             )}
 
@@ -100,7 +102,7 @@ export default function Matrix() {
                     <div style={{ minWidth:0 }}>
                       <div style={{ fontSize:12.5, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden',
                         textOverflow:'ellipsis', color: W.ink }}>{emp.name}</div>
-                      {emp.hasLate && <div style={{ fontSize:9.5, color: W.late, fontWeight:600 }}>Có task trễ</div>}
+                      {emp.hasLate && <div style={{ fontSize:9.5, color: W.late, fontWeight:600 }}>{t('Có task trễ')}</div>}
                     </div>
                   </div>
                   <div style={{ flex:1, display:'flex', gap:4 }}>

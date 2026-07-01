@@ -5,6 +5,7 @@ import { W, Card, H, T, Btn, Tag, Dot, Bar, Ico, Skel } from '../../design-syste
 import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS, calcDeadline } from '../../data'
 import { SCORE_PHASES, phaseScore, overallScore, indexByTask } from '../../checklist'
+import { useT } from '../../i18n'
 
 function taskStatus(sub, task, startDate) {
   if (!sub) return new Date() > new Date(calcDeadline(task, startDate)) ? 'late' : 'todo'
@@ -42,6 +43,7 @@ function TaskPill({ task, st, to }) {
 
 export default function Roadmap() {
   const { currentUser } = useStore()
+  const t = useT()
   const [subs, setSubs] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -56,19 +58,19 @@ export default function Roadmap() {
   const overallPct = overallScore(subByTask)
 
   return (
-    <Shell role="emp" title="Lộ trình 3 phase · 8 module + Capstone" sub="Một sản phẩm, kéo tới cùng — mỗi module một output thật"
+    <Shell role="emp" title={t('Lộ trình 3 phase · 8 module + Capstone')} sub={t('Một sản phẩm, kéo tới cùng — mỗi module một output thật')}
       actions={
         <>
-          <Tag tone="acc">Tiến độ {overallPct}%</Tag>
-          <Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>Lịch nộp</Btn></Link>
+          <Tag tone="acc">{t('Tiến độ')} {overallPct}%</Tag>
+          <Link to="/emp/schedule"><Btn kind="ghost" size="sm" icon={<Ico name="cal" s={14}/>}>{t('Lịch nộp')}</Btn></Link>
         </>
       }>
 
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
         <Card pad={14} style={{ display:'flex', alignItems:'center', gap:18 }}>
-          <div style={{ fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>Tổng tiến độ</div>
+          <div style={{ fontSize:13, fontWeight:700, whiteSpace:'nowrap' }}>{t('Tổng tiến độ')}</div>
           <Bar pct={overallPct} h={10} style={{ flex:1 }} />
-          <div style={{ fontSize:12, color: W.ink2, fontFamily: W.mono, whiteSpace:'nowrap' }}>{doneCount} / {TASKS.length} task</div>
+          <div style={{ fontSize:12, color: W.ink2, fontFamily: W.mono, whiteSpace:'nowrap' }}>{doneCount} / {TASKS.length} {t('task')}</div>
         </Card>
 
         {loading ? (

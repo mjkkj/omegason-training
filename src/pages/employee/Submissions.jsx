@@ -5,6 +5,7 @@ import { W, Card, H, T, Btn, Tag, Ico, Skel } from '../../design-system'
 import { useStore, fetchMySubmissions } from '../../store'
 import { TASKS } from '../../data'
 import { moduleScore } from '../../checklist'
+import { useT } from '../../i18n'
 
 function fmtDate(iso) {
   if (!iso) return '—'
@@ -14,6 +15,7 @@ function fmtDate(iso) {
 
 export default function Submissions() {
   const { currentUser } = useStore()
+  const t = useT()
   const [subs, setSubs]       = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -25,8 +27,8 @@ export default function Submissions() {
   }, [currentUser?.id])
 
   return (
-    <Shell role="emp" title="Bài nộp của tôi" sub="Tất cả bài đã nộp — bấm để xem hoặc nộp lại"
-      actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>Lộ trình</Btn></Link>}>
+    <Shell role="emp" title={t('Bài nộp của tôi')} sub={t('Tất cả bài đã nộp — bấm để xem hoặc nộp lại')}
+      actions={<Link to="/emp/roadmap"><Btn kind="ghost" size="sm" icon={<Ico name="grid" s={14}/>}>{t('Lộ trình')}</Btn></Link>}>
 
       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
         {loading && <Skel lines={5} gap={12} h={56} />}
@@ -35,7 +37,7 @@ export default function Submissions() {
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
             gap:10, color: W.ink3, padding:'60px 0' }}>
             <Ico name="doc" s={32} c={W.ink4} />
-            <T size={13}>Chưa có bài nộp nào. <Link to="/emp/roadmap" style={{ color: W.acc }}>Xem lộ trình →</Link></T>
+            <T size={13}>{t('Chưa có bài nộp nào. ')}<Link to="/emp/roadmap" style={{ color: W.acc }}>{t('Xem lộ trình →')}</Link></T>
           </div>
         )}
 
@@ -51,14 +53,14 @@ export default function Submissions() {
                   whiteSpace:'nowrap' }}>{task?.name || s.task_id}</div>
                 <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
                   <Ico name="clock" s={12} c={W.ink3} />
-                  <T size={11.5} c={W.ink3}>Nộp ngày {fmtDate(s.submitted_at)}</T>
+                  <T size={11.5} c={W.ink3}>{t('Nộp ngày')} {fmtDate(s.submitted_at)}</T>
                 </div>
               </div>
               {s.status === 'graded'
                 ? <Tag tone="done">{moduleScore(s, s.task_id)}%</Tag>
-                : <Tag tone="warn">Chờ chấm</Tag>}
-              <Link to={`/emp/task/${s.task_id}`}><Btn kind="ghost" size="sm">Xem</Btn></Link>
-              <Link to={`/emp/submit/${s.task_id}`}><Btn kind="soft" size="sm">Nộp lại</Btn></Link>
+                : <Tag tone="warn">{t('Chờ chấm')}</Tag>}
+              <Link to={`/emp/task/${s.task_id}`}><Btn kind="ghost" size="sm">{t('Xem')}</Btn></Link>
+              <Link to={`/emp/submit/${s.task_id}`}><Btn kind="soft" size="sm">{t('Nộp lại')}</Btn></Link>
             </Card>
           )
         })}
