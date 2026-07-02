@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Tag, Stat, Ico, Avatar, Skel } from '../../design-system'
-import { fetchAllUsers, updateUserRole, useStore } from '../../store'
+import { fetchAllUsers, updateUserRole, deleteUserAccount, useStore } from '../../store'
 
 export default function Roles() {
   const { currentUser } = useStore()
@@ -9,7 +9,8 @@ export default function Roles() {
   const [loading, setLoading] = useState(true)
   const [q, setQ]             = useState('')
   const [busyId, setBusyId]   = useState(null)   // id đang xử lý
-  const [confirmId, setConfirmId] = useState(null) // id đang chờ xác nhận
+  const [confirmId, setConfirmId] = useState(null) // id đang chờ xác nhận đổi quyền
+  const [delId, setDelId]     = useState(null)   // id đang chờ xác nhận xoá
   const [err, setErr]         = useState('')
 
   const load = () => fetchAllUsers().then(d => { setUsers(d); setLoading(false) })
@@ -34,6 +35,24 @@ export default function Roles() {
     }
   }
 
+  const removeUser = async (user) => {
+    setErr('')
+    setBusyId(user.id)
+    try {
+      await deleteUserAccount(user.id)
+      await load()
+      setDelId(null)
+    } catch (e) {
+      if (e.message === 'RLS_BLOCKED') {
+        setErr('Xoá bị Supabase RLS chặn (0 dòng thay đổi). Hãy mở Supabase → SQL Editor và chạy file "supabase-roles.sql" trong repo để thêm policy cho phép quản lý xoá tài khoản, rồi thử lại.')
+      } else {
+        setErr(`Không xoá được tài khoản: ${e.message || e}`)
+      }
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   const managers = users.filter(u => u.role === 'manager')
   const employees = users.filter(u => u.role !== 'manager')
 
@@ -43,7 +62,7 @@ export default function Roles() {
   )
 
   return (
-    <Shell role="mgr" title="Phân quyền" sub="Nâng cấp tài khoản đã đăng ký lên quản lý hoặc hạ về nhân viên">
+    <Shell role="mgr" title="Phân quyền" sub="Nâng/hạ quyền hoặc xoá tài khoản đã đăng ký">
       <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
         <div style={{ display:'flex', gap:12 }}>
           <Stat n={users.length}      label="Tổng tài khoản" />
@@ -72,7 +91,7 @@ export default function Roles() {
               letterSpacing:0.3, fontFamily: W.mono }}>
               <div style={{ flex:1 }}>TÀI KHOẢN</div>
               <div style={{ width:120 }}>QUYỀN HIỆN TẠI</div>
-              <div style={{ width:210, textAlign:'right' }}>THAO TÁC</div>
+              <div style={{ width:300, textAlign:'right' }}>THAO TÁC</div>
             </div>
 
             {rows.length === 0 && (
@@ -86,6 +105,7 @@ export default function Roles() {
               const isMgr   = u.role === 'manager'
               const busy    = busyId === u.id
               const asking  = confirmId === u.id
+              const asDel   = delId === u.id
               return (
                 <div key={u.id} style={{ display:'flex', alignItems:'center', padding:'13px 16px',
                   borderTop: i ? `1px solid ${W.line2}` : 'none', background:'#fff' }}>
@@ -105,9 +125,19 @@ export default function Roles() {
                     {isMgr ? <Tag tone="acc">Quản lý</Tag> : <Tag tone="done">Nhân viên</Tag>}
                   </div>
 
-                  <div style={{ width:210, display:'flex', justifyContent:'flex-end', gap:8 }}>
+                  <div style={{ width:300, display:'flex', justifyContent:'flex-end', gap:8 }}>
                     {isSelf ? (
-                      <T size={11.5} c={W.ink4}>Không thể tự đổi quyền</T>
+                      <T size={11.5} c={W.ink4}>Không thể tự đổi quyền / xoá</T>
+                    ) : asDel ? (
+                      <>
+                        <Btn kind="ghost" size="sm" disabled={busy}
+                          onClick={() => setDelId(null)}>Hủy</Btn>
+                        <Btn kind="danger" size="sm" disabled={busy}
+                          icon={<Ico name="trash" s={14} c={W.late} />}
+                          onClick={() => removeUser(u)}>
+                          {busy ? 'Đang xoá…' : 'Xác nhận xoá tài khoản'}
+                        </Btn>
+                      </>
                     ) : asking ? (
                       <>
                         <Btn kind="ghost" size="sm" disabled={busy}
@@ -117,12 +147,18 @@ export default function Roles() {
                           {busy ? 'Đang lưu…' : isMgr ? 'Xác nhận hạ quyền' : 'Xác nhận nâng quyền'}
                         </Btn>
                       </>
-                    ) : isMgr ? (
-                      <Btn kind="ghost" size="sm" icon={<Ico name="user" s={14} c={W.ink2} />}
-                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Hạ về nhân viên</Btn>
                     ) : (
-                      <Btn kind="soft" size="sm" icon={<Ico name="shield" s={14} c={W.acc} />}
-                        onClick={() => { setErr(''); setConfirmId(u.id) }}>Nâng lên quản lý</Btn>
+                      <>
+                        {isMgr ? (
+                          <Btn kind="ghost" size="sm" icon={<Ico name="user" s={14} c={W.ink2} />}
+                            onClick={() => { setErr(''); setDelId(null); setConfirmId(u.id) }}>Hạ về nhân viên</Btn>
+                        ) : (
+                          <Btn kind="soft" size="sm" icon={<Ico name="shield" s={14} c={W.acc} />}
+                            onClick={() => { setErr(''); setDelId(null); setConfirmId(u.id) }}>Nâng lên quản lý</Btn>
+                        )}
+                        <Btn kind="danger" size="sm" icon={<Ico name="trash" s={14} c={W.late} />}
+                          onClick={() => { setErr(''); setConfirmId(null); setDelId(u.id) }}>Xoá</Btn>
+                      </>
                     )}
                   </div>
                 </div>
@@ -133,6 +169,7 @@ export default function Roles() {
 
         <T size={11.5} c={W.ink3}>
           Quản lý có toàn quyền chấm bài, xem tiến độ và quản trị nội dung đào tạo. Hãy cân nhắc khi nâng quyền.
+          Xoá tài khoản sẽ xoá hồ sơ và bài nộp liên quan (không hoàn tác được); bản ghi đăng nhập cần xoá thêm ở Supabase → Authentication.
         </T>
       </div>
     </Shell>

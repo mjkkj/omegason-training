@@ -119,6 +119,23 @@ export async function updateUserRole(userId, role) {
   return data[0]
 }
 
+// Xoá tài khoản: xoá hồ sơ (profiles) và dọn dữ liệu liên quan.
+// Lưu ý: KHÔNG xoá được bản ghi đăng nhập trong auth.users bằng anon key —
+// việc đó cần service_role (làm ở Supabase Dashboard → Authentication → Users).
+// Cần policy DELETE cho quản lý (xem supabase-roles.sql), nếu không sẽ RLS_BLOCKED.
+export async function deleteUserAccount(userId) {
+  // Dọn bài nộp liên quan trước (nếu chưa có ON DELETE CASCADE / policy thì bỏ qua).
+  await supabase.from('submissions').delete().eq('employee_id', userId)
+
+  const { data, error } = await supabase
+    .from('profiles').delete().eq('id', userId).select()
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('RLS_BLOCKED')
+  }
+  return data[0]
+}
+
 export async function upsertSubmission({ employeeId, taskId, fileName, fileContent, fileSize, note }) {
   const { error } = await supabase.from('submissions').upsert({
     employee_id: employeeId,

@@ -42,6 +42,27 @@ create policy "self update profile"
   using (id = auth.uid())
   with check (id = auth.uid());
 
+-- 4) Cho phép QUẢN LÝ XOÁ hồ sơ của người khác (xoá tài khoản).
+--    Dùng cho nút "Xoá tài khoản" ở màn hình Phân quyền.
+drop policy if exists "managers delete profiles" on public.profiles;
+create policy "managers delete profiles"
+  on public.profiles for delete
+  to authenticated
+  using (public.is_manager());
+
+-- 5) Cho phép QUẢN LÝ XOÁ bài nộp (dọn dữ liệu liên quan khi xoá tài khoản).
+--    Nếu bảng submissions đã có khoá ngoại ON DELETE CASCADE tới profiles thì
+--    policy này là tuỳ chọn; giữ lại để việc xoá luôn hoạt động.
+drop policy if exists "managers delete submissions" on public.submissions;
+create policy "managers delete submissions"
+  on public.submissions for delete
+  to authenticated
+  using (public.is_manager());
+
+-- LƯU Ý: Việc này chỉ xoá hồ sơ (profiles) + bài nộp. Bản ghi ĐĂNG NHẬP trong
+-- auth.users KHÔNG bị xoá bằng anon key. Muốn xoá hẳn tài khoản đăng nhập, vào
+-- Supabase Dashboard → Authentication → Users → xoá user (cần service_role).
+
 -- ============================================================
 -- BOOTSTRAP: chỉ định QUẢN LÝ ĐẦU TIÊN
 -- ============================================================
