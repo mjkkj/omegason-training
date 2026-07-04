@@ -10,10 +10,20 @@ function fmtDate(d) {
 }
 
 function download(doc) {
+  const data = doc.file_data || ''
+  // Images / PDFs / etc. are stored as a data: URL. But .html/.htm uploads are
+  // stored as raw markup (so they can be previewed in an iframe), which is NOT a
+  // valid URL — using it as href downloads the SPA shell instead of the file.
+  // Wrap raw content in a Blob so the real bytes (and the real name) are saved.
+  const isUrl = /^(data:|blob:)/.test(data)
+  const href = isUrl ? data : URL.createObjectURL(new Blob([data], { type: doc.mime_type || 'text/html' }))
+
   const a = document.createElement('a')
-  a.href = doc.file_data
+  a.href = href
   a.download = doc.file_name
   a.click()
+
+  if (!isUrl) setTimeout(() => URL.revokeObjectURL(href), 0)
 }
 
 export default function Documents() {
