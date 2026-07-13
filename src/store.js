@@ -156,9 +156,21 @@ export async function saveTaskVideos(taskId, videos) {
 }
 
 export async function fetchDocuments() {
-  const { data, error } = await supabase.from('documents').select('*').order('created_at', { ascending: false })
+  // Excludes file_data: that column can hold up to 30MB of base64 per row,
+  // and loading all of it just to render the list can blow past the REST
+  // API's response size/time limits and come back as a 500.
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, title, description, file_name, file_size, mime_type, uploaded_by, created_at, updated_at')
+    .order('created_at', { ascending: false })
   if (error) throw error
   return data || []
+}
+
+export async function fetchDocumentFile(id) {
+  const { data, error } = await supabase.from('documents').select('file_data, file_name, mime_type').eq('id', id).single()
+  if (error) throw error
+  return data
 }
 
 export async function uploadDocument({ title, description, fileName, fileData, fileSize, mimeType, uploadedBy }) {

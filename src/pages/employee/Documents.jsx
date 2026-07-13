@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Shell from '../../components/Shell'
 import { W, Card, H, T, Btn, Ico, Skel } from '../../design-system'
-import { fetchDocuments } from '../../store'
+import { fetchDocuments, fetchDocumentFile } from '../../store'
 import { formatSize, isImage } from '../../submission'
 
 function fmtDate(d) {
@@ -31,12 +31,27 @@ export default function Documents() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const [q, setQ]             = useState('')
+  const [downloadingId, setDownloadingId] = useState(null)
+  const [downloadError, setDownloadError] = useState(null)
 
   useEffect(() => {
     fetchDocuments()
       .then(data => { setDocs(data); setLoading(false) })
       .catch(e => { setError(e.message); setLoading(false) })
   }, [])
+
+  const handleDownload = async (doc) => {
+    setDownloadingId(doc.id)
+    setDownloadError(null)
+    try {
+      const file = await fetchDocumentFile(doc.id)
+      download({ ...doc, file_data: file.file_data })
+    } catch (e) {
+      setDownloadError(e.message)
+    } finally {
+      setDownloadingId(null)
+    }
+  }
 
   const filtered = docs.filter(d =>
     !q.trim() || d.title.toLowerCase().includes(q.trim().toLowerCase()))
@@ -56,6 +71,12 @@ export default function Documents() {
         {!loading && error && (
           <Card pad={16} fill={W.lateSoft} line="transparent">
             <T size={13} c={W.late}>Không tải được tài liệu. Có thể bảng "documents" chưa được tạo trong Supabase (chạy supabase-documents.sql).</T>
+          </Card>
+        )}
+
+        {downloadError && (
+          <Card pad={16} fill={W.lateSoft} line="transparent">
+            <T size={13} c={W.late}>Không tải được tệp: {downloadError}</T>
           </Card>
         )}
 
@@ -83,7 +104,8 @@ export default function Documents() {
                     <T size={11} c={W.ink4}>· {fmtDate(doc.created_at)}</T>
                   </div>
                 </div>
-                <Btn kind="soft" size="sm" icon={<Ico name="download" s={13}/>} onClick={() => download(doc)}>Tải về</Btn>
+                <Btn kind="soft" size="sm" icon={<Ico name="download" s={13}/>} disabled={downloadingId === doc.id}
+                  onClick={() => handleDownload(doc)}>{downloadingId === doc.id ? 'Đang tải…' : 'Tải về'}</Btn>
               </Card>
             ))}
           </div>

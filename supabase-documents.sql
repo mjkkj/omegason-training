@@ -20,6 +20,20 @@ create table if not exists public.documents (
 
 alter table public.documents enable row level security;
 
+-- Bảo đảm hàm is_manager() tồn tại (thường được tạo trong supabase-roles.sql).
+-- Khai báo lại ở đây để script này chạy độc lập, không lỗi nếu chạy trước roles.
+create or replace function public.is_manager()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'manager'
+  );
+$$;
+
 -- 1) Mọi người đã đăng nhập (employee + manager) được ĐỌC danh sách tài liệu.
 drop policy if exists "documents read" on public.documents;
 create policy "documents read"
